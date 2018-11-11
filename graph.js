@@ -1,6 +1,6 @@
 const INIT_GRAPH = 'data.json';
-const NODES_TO_DISPLAY = 3;
 const NEI_TO_DISPLAY = 5;
+let NODES_TO_DISPLAY = 3;
 
 /* Colors */
 const NODE_COLOR = '#ec5148';
@@ -20,22 +20,23 @@ function whenDocumentLoaded(action) {
 }
 
 /* Read file */
-function readTextFile(file, callback) {
-    var rawFile = new XMLHttpRequest();
-    rawFile.overrideMimeType("application/json");
-    rawFile.open("GET", file, true);
-    rawFile.onreadystatechange = function() {
-        if (rawFile.readyState === 4 && rawFile.status == "200") {
-            callback(rawFile.responseText);
-        }
-    }
-    rawFile.send(null);
-}
+// function readTextFile(file, callback) {
+//     var rawFile = new XMLHttpRequest();
+//     rawFile.overrideMimeType("application/json");
+//     rawFile.open("GET", file, true);
+//     rawFile.onreadystatechange = function() {
+//         if (rawFile.readyState === 4 && rawFile.status == "200") {
+//             callback(rawFile.responseText);
+//         }
+//     }
+//     rawFile.send(null);
+// }
 
 class EventHandler {
   constructor(dataFile) {
     this.clickedNodes = [];
     this.camPos = [[0, 0]];
+    this.totalScale = 1;
   }
 
   addNeighbors(id, graphObj, eventType) {
@@ -103,8 +104,9 @@ class EventHandler {
   onNodeClick(cl, graphObj) {
     /* Identify the node and its position */
     const id = cl.data.node.id;
-    const newX = cl.data.captor.x;
-    const newY = cl.data.captor.y;
+    const [prevXAbs, prevYAbs] = this.camPos[this.camPos.length - 1];
+    const newX = cl.data.captor.x / this.totalScale + prevXAbs;
+    const newY = cl.data.captor.y / this.totalScale + prevYAbs;
     const camera = graphObj.sigma.camera;
 
     if (this.clickedNodes.length === 0 || this.clickedNodes[this.clickedNodes.length - 1] !== id) {
@@ -113,6 +115,9 @@ class EventHandler {
 
       /* Draw the neighbor nodes */
       this.addNeighbors(id, graphObj, 'click');
+
+      /* Adjust the scale */
+      this.totalScale *= camera.settings("zoomingRatio");
 
       /* Zoom in */
       sigma.misc.animation.camera(camera, {
@@ -128,6 +133,9 @@ class EventHandler {
 
       /* Remove the neighbor nodes */
       this.removeNeighbors(id, graphObj, 'click');
+
+      /* Adjust the scale */
+      this.totalScale /= camera.settings("zoomingRatio");
 
       const newCamPos = this.camPos[this.camPos.length - 1];
       /* Zoom out */
@@ -163,15 +171,15 @@ class Graph {
   constructor(dataFile, eventHandler) {
     this.dataFile = dataFile;
     this.eventHandler = eventHandler;
+    this.sigma = new sigma('container');
 
     /* Keep a representation of the graph */
     this.outNei = {};
     this.inNei = {};
     this.nodes = {};
     this.drawnNodes = {};
-    readTextFile(dataFile, (text) => {
-      const data = JSON.parse(text);
 
+    d3.json(dataFile).then((data) => {
       /* Store in and out neighbours for each node */
       for (const i in data.edges) {
         const edge = data.edges[i];
@@ -191,16 +199,19 @@ class Graph {
       for (const i in data.nodes) {
         const node = data.nodes[i];
         this.nodes[node.id] = node;
-        this.drawnNodes[node.id] = 1;
+        this.drawnNodes[node.id] = 0;
       }
     });
   }
 
   draw() {
     /* Parse data file and draw graph*/
-    this.sigma = new sigma('container');
     const s = this.sigma;
     const evHand = this.eventHandler;
+
+    /* Clear the graph and unbind methods, in case you redraw */
+    s.graph.clear();
+    s.unbind(["clickNode", "overNode", "outNode"]);
 
     /* Set the display settings for the sigma instance */
     s.settings({
@@ -215,6 +226,9 @@ class Graph {
       let nodes = s.graph.nodes();
       nodes.sort((node1, node2) => node2.size - node1.size);
       const nodes_len = nodes.length;
+
+      for (let i = 0; i < NODES_TO_DISPLAY; i++)
+        this.drawnNodes[nodes[i].id] = 1;
 
       for (let i = NODES_TO_DISPLAY; i < nodes_len; i++) {
         this.drawnNodes[nodes[i].id] = 0;
@@ -235,7 +249,13 @@ class Graph {
 whenDocumentLoaded(() => {
   const eventHandler = new EventHandler(INIT_GRAPH);
   const graph = new Graph(INIT_GRAPH, eventHandler);
+  const button = d3.select('#article_button');
 
   /* Draw the graph */
+  button.on("click", () => {
+    NODES_TO_DISPLAY = parseInt(document.getElementById('article_text').value);
+    graph.draw();
+  });
+
   graph.draw();
 });
