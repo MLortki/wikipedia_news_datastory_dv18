@@ -1,4 +1,4 @@
-const INIT_GRAPH = 'data.json';
+const INIT_GRAPH = 'cytoscape_data.json';
 const NEI_TO_DISPLAY = 5;
 let NODES_TO_DISPLAY = 3;
 
@@ -158,7 +158,95 @@ class Graph {
   constructor(dataFile, eventHandler) {
     this.dataFile = dataFile;
     this.eventHandler = eventHandler;
-    this.sigma = new sigma('container');
+    this.cy = new cytoscape({
+			container: document.getElementById('container'),
+			elements: [
+		    {
+		      "data": {
+		          "id": "n0"
+					},
+					"style": {
+						"width": 10
+					}
+		    },
+		    {
+		      "data": {
+		          "id": "n1"
+		      }
+		    },
+		    {
+		      "data": {
+		          "id": "n2"
+		      }
+		    },
+		    {
+		      "data": {
+		          "id": "n3"
+		      }
+		    },
+		    {
+		      "data": {
+		          "id": "n4"
+		      }
+		    },
+		    {
+		      "data": {
+		        "id": "e0",
+		        "source": "n0",
+		        "target": "n1"
+		      }
+		    },
+		    {
+		      "data": {
+		        "id": "e1",
+		        "source": "n1",
+		        "target": "n2"
+		      }
+		    },
+		    {
+		      "data": {
+		        "id": "e2",
+		        "source": "n2",
+		        "target": "n0"
+		      }
+		    },
+		    {
+		      "data": {
+		        "id": "e3",
+		        "source": "n0",
+		        "target": "n3"
+		      }
+		    },
+		    {
+		      "data": {
+		        "id": "e4",
+		        "source": "n0",
+		        "target": "n4"
+		      }
+		    }
+		  ],
+			style: [
+				{
+					'selector': 'node',
+					'style': {
+						'color': NODE_COLOR,
+						'background-color': NODE_COLOR,
+						'label': 'data(id)'
+					}
+				},
+				{
+					'selector': 'edge',
+					'style': {
+						'line-color': EDGE_COLOR,
+						'target-arrow-color': EDGE_COLOR,
+	        	'target-arrow-shape': 'triangle'
+					}
+				}
+			],
+			layout: {
+		    name: 'random'
+		  }
+		});
 
     /* Keep a representation of the graph */
     this.outNei = {};
@@ -169,7 +257,7 @@ class Graph {
     d3.json(dataFile).then((data) => {
       /* Store in and out neighbours for each node */
       for (const i in data.edges) {
-        const edge = data.edges[i];
+        const edge = data.edges[i].data;
 
         if (this.outNei[edge.source] != undefined)
           this.outNei[edge.source].push(edge);
@@ -184,7 +272,7 @@ class Graph {
 
       /* Store nodes */
       for (const i in data.nodes) {
-        const node = data.nodes[i];
+        const node = data.nodes[i].data;
         this.nodes[node.id] = node;
         this.drawnNodes[node.id] = 0;
       }
@@ -193,44 +281,50 @@ class Graph {
 
   draw() {
     /* Parse data file and draw graph*/
-    const s = this.sigma;
+    const cy = this.cy;
     const evHand = this.eventHandler;
 
     /* Clear the graph and unbind methods, in case you redraw */
-    s.graph.clear();
-    s.unbind(["clickNode", "overNode", "outNode"]);
+		// s.graph.clear();
+    // s.unbind(["clickNode", "overNode", "outNode"]);
 
     /* Set the display settings for the sigma instance */
-    s.settings({
-      defaultLabelColor: LABEL_COLOR,
-      edgeColor: 'default',
-      defaultEdgeColor: EDGE_COLOR,
-      defaultNodeColor: NODE_COLOR,
-    });
+    // s.settings({
+    //   defaultLabelColor: LABEL_COLOR,
+    //   edgeColor: 'default',
+    //   defaultEdgeColor: EDGE_COLOR,
+    //   defaultNodeColor: NODE_COLOR,
+    // });
 
-    sigma.parsers.json(this.dataFile, s, () => {
-      /* Keep only the largest nodes */
-      let nodes = s.graph.nodes();
-      nodes.sort((node1, node2) => node2.size - node1.size);
-      const nodes_len = nodes.length;
-
-      for (let i = 0; i < NODES_TO_DISPLAY; i++)
-        this.drawnNodes[nodes[i].id] = 1;
-
-      for (let i = NODES_TO_DISPLAY; i < nodes_len; i++) {
-        this.drawnNodes[nodes[i].id] = 0;
-        s.graph.dropNode(nodes[i].id);
-      }
-
-      /* Bind event handlers */
-      s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
-      s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
-      s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
-
-      /* Refresh graph */
-      s.refresh();
-    });
-  }
+  //   sigma.parsers.json(this.dataFile, s, () => {
+  //     /* Keep only the largest nodes */
+  //     let nodes = s.graph.nodes();
+  //     nodes.sort((node1, node2) => node2.size - node1.size);
+  //     const nodes_len = nodes.length;
+	//
+  //     for (let i = 0; i < NODES_TO_DISPLAY; i++)
+  //       this.drawnNodes[nodes[i].id] = 1;
+	//
+  //     for (let i = NODES_TO_DISPLAY; i < nodes_len; i++) {
+  //       this.drawnNodes[nodes[i].id] = 0;
+  //       s.graph.dropNode(nodes[i].id);
+  //     }
+	//
+  //     /* Bind event handlers */
+  //     s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
+  //     s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
+  //     s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
+	//
+  //     /* Refresh graph */
+  //     s.refresh();
+  //   });
+		d3.json(this.dataFile).then((data) => {
+			/* Add nodes */
+			cy.add(data.nodes);
+			/* Add edges */
+			cy.add(data.edges);
+		});
+	}
 }
 
 whenDocumentLoaded(() => {
