@@ -160,71 +160,6 @@ class Graph {
     this.eventHandler = eventHandler;
     this.cy = new cytoscape({
 			container: document.getElementById('container'),
-			elements: [
-		    {
-		      "data": {
-		          "id": "n0"
-					},
-					"style": {
-						"width": 10
-					}
-		    },
-		    {
-		      "data": {
-		          "id": "n1"
-		      }
-		    },
-		    {
-		      "data": {
-		          "id": "n2"
-		      }
-		    },
-		    {
-		      "data": {
-		          "id": "n3"
-		      }
-		    },
-		    {
-		      "data": {
-		          "id": "n4"
-		      }
-		    },
-		    {
-		      "data": {
-		        "id": "e0",
-		        "source": "n0",
-		        "target": "n1"
-		      }
-		    },
-		    {
-		      "data": {
-		        "id": "e1",
-		        "source": "n1",
-		        "target": "n2"
-		      }
-		    },
-		    {
-		      "data": {
-		        "id": "e2",
-		        "source": "n2",
-		        "target": "n0"
-		      }
-		    },
-		    {
-		      "data": {
-		        "id": "e3",
-		        "source": "n0",
-		        "target": "n3"
-		      }
-		    },
-		    {
-		      "data": {
-		        "id": "e4",
-		        "source": "n0",
-		        "target": "n4"
-		      }
-		    }
-		  ],
 			style: [
 				{
 					'selector': 'node',
@@ -242,10 +177,7 @@ class Graph {
 	        	'target-arrow-shape': 'triangle'
 					}
 				}
-			],
-			layout: {
-		    name: 'random'
-		  }
+			]
 		});
 
     /* Keep a representation of the graph */
@@ -319,10 +251,14 @@ class Graph {
   //     s.refresh();
   //   });
 		d3.json(this.dataFile).then((data) => {
+			const layout = cy.layout({"name": "cose"});
+
 			/* Add nodes */
 			cy.add(data.nodes);
 			/* Add edges */
 			cy.add(data.edges);
+			cy.elements().layout(layout);
+			layout.run();
 		});
 	}
 }

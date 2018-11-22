@@ -1,4 +1,4 @@
-const INIT_GRAPH = 'data.json';
+let INIT_GRAPH = 'data.json';
 const NEI_TO_DISPLAY = 5;
 let NODES_TO_DISPLAY = 3;
 
@@ -20,11 +20,17 @@ function whenDocumentLoaded(action) {
 }
 
 class EventHandler {
-  constructor(dataFile) {
+  constructor() {
     this.clickedNodes = [];
     this.camPos = [[0, 0]];
     this.totalScale = 1;
   }
+
+	reset() {
+		this.clickedNodes = [];
+    this.camPos = [[0, 0]];
+    this.totalScale = 1;
+	}
 
   addNeighbors(id, graphObj, eventType) {
     /* Extract graph attributes */
@@ -158,15 +164,19 @@ class Graph {
   constructor(dataFile, eventHandler) {
     this.dataFile = dataFile;
     this.eventHandler = eventHandler;
-    this.sigma = new sigma('container');
+    this.sigma = new sigma('graph');
 
-    /* Keep a representation of the graph */
+    this.generateRepresentation(dataFile);
+  }
+
+	generateRepresentation() {
+		/* Keep a representation of the graph */
     this.outNei = {};
     this.inNei = {};
     this.nodes = {};
     this.drawnNodes = {};
 
-    d3.json(dataFile).then((data) => {
+    d3.json(this.dataFile).then((data) => {
       /* Store in and out neighbours for each node */
       for (const i in data.edges) {
         const edge = data.edges[i];
@@ -189,7 +199,7 @@ class Graph {
         this.drawnNodes[node.id] = 0;
       }
     });
-  }
+	}
 
   draw() {
     /* Parse data file and draw graph*/
@@ -234,9 +244,47 @@ class Graph {
 }
 
 whenDocumentLoaded(() => {
-  const eventHandler = new EventHandler(INIT_GRAPH);
-  const graph = new Graph(INIT_GRAPH, eventHandler);
+  let eventHandler = new EventHandler();
+  let graph = new Graph(INIT_GRAPH, eventHandler);
   const button = d3.select('#article_button');
+
+	/* Insert a slider to select day for which to display nodes */
+	const time_range = d3.range(1, 366).map((d) => new Date(2017, 0, d));
+
+	const time_slider = d3.sliderHorizontal()
+		.min(d3.min(time_range))
+		.max(d3.max(time_range))
+		.tickFormat(d3.timeFormat("%d/%m"))
+		.width(900);
+
+	const slider_div = d3.select('#time_slider').append('svg')
+		.attr('width', "100%")
+		.attr('height', "5%")
+		.append('g')
+		.attr('transform', 'translate(10, 0)');
+
+	slider_div.call(time_slider);
+
+	let date = '01/01';
+	time_slider.on('onchange', (val) => {
+		val = d3.timeFormat('%m/%d')(val);
+
+		if (val !== date) {
+			date = val;
+			if (val === '01/01') {
+				eventHandler.reset();
+				graph.dataFile = 'data.json';
+				graph.generateRepresentation();
+			}
+			else {
+				eventHandler.reset();
+				graph.dataFile = 'data2.json';
+				graph.generateRepresentation();
+			}
+
+			graph.draw();
+		}
+	});
 
   /* Draw the graph */
   button.on("click", () => {
