@@ -41,6 +41,9 @@ class EventHandler {
     const nodes = graphObj.nodes;
     const drawnNodes = graphObj.drawnNodes;
 
+		/* Stop layout */
+		// graphObj.sigma.stopForceAtlas2();
+
     /* Append the biggest neighbor nodes to the graph */
 		let node_cnt = 0;
     for (const i in outNei) {
@@ -71,6 +74,8 @@ class EventHandler {
       graph.addEdge(outNei[i]);
     }
 
+		/* Restart layout */
+		// graphObj.sigma.startForceAtlas2();
     /* Redraw the graph */
     graphObj.sigma.refresh();
   }
@@ -82,6 +87,9 @@ class EventHandler {
     const graph = graphObj.sigma.graph;
     const nodes = graphObj.nodes;
     const drawnNodes = graphObj.drawnNodes;
+
+		/* Stop layout */
+		// graphObj.sigma.stopForceAtlas2();
 
     /* Remove the nodes that were previously added on hover */
     for (const i in outNei) {
@@ -99,6 +107,8 @@ class EventHandler {
       graph.dropNode(newNodeId);
     }
 
+		/* Restart layout */
+		// graphObj.sigma.startForceAtlas2();
     /* Redraw the graph */
     graphObj.sigma.refresh();
   }
@@ -177,6 +187,23 @@ class Graph {
     this.eventHandler = eventHandler;
     this.sigma = new sigma('graph');
 
+		/* Start the force layout */
+		let config = {
+		  nodeMargin: 3.0,
+		  scaleNodes: 1.3
+		};
+
+		// Configure the algorithm
+		let listener = this.sigma.configNoverlap(config);
+
+		// Bind all events:
+		listener.bind('start stop interpolate', function(event) {
+		  console.log(event.type);
+		});
+
+		// Start the algorithm:
+		this.sigma.startNoverlap();
+
     this.generateRepresentation(dataFile);
   }
 
@@ -249,10 +276,12 @@ class Graph {
         s.graph.dropNode(nodes[i].id);
       }
 
+			this.sigma.startForceAtlas2({worker: true, barnesHutOptimize: false});
+
       /* Bind event handlers */
       s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
-      s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
-      s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
+      // s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
+      // s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
 
       /* Refresh graph */
       s.refresh();
