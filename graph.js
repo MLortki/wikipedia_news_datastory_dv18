@@ -1,10 +1,11 @@
-let INIT_GRAPH = 'data.json';
-const NEI_TO_DISPLAY = 5;
+const DATA_DIR = 'data/daily_visitors/';
+const INIT_GRAPH = 'data.json';
 let NODES_TO_DISPLAY = 3;
 
 /* Colors */
 const NODE_COLOR = '#ec5148';
 const NODE_COLOR_HOVER = '#7edf29';
+const NODE_COLOR_CLICK = '#7edf29';
 const EDGE_COLOR = '#489fec';
 const EDGE_COLOR_HOVER = '#baff7e';
 const LABEL_COLOR = '#ffffff';
@@ -40,11 +41,19 @@ class EventHandler {
     const nodes = graphObj.nodes;
     const drawnNodes = graphObj.drawnNodes;
 
-    /* Append neighbor nodes to the graph */
+    /* Append the biggest neighbor nodes to the graph */
+		let node_cnt = 0;
     for (const i in outNei) {
+			/* Stop after adding enough nodes */
+			if (node_cnt == NODES_TO_DISPLAY - 1)
+				break;
+
       const newNodeId = outNei[i].target;
       /* Ignore already present nodes */
       if (drawnNodes[newNodeId] === 1) {
+				/* Count the node as added if it was added through hover or click */
+				if (nodes[newNodeId].parentType === 'hover' || nodes[newNodeId].parentType === 'click')
+					node_cnt += 1;
         /* Override event type in case of click */
         if (eventType === 'click' && nodes[newNodeId].parentType !== undefined)
           nodes[newNodeId].parentType = eventType;
@@ -52,6 +61,7 @@ class EventHandler {
       }
 
       drawnNodes[newNodeId] = 1;
+			node_cnt += 1;
       /* Mark new node as added by the current node */
       nodes[newNodeId].parent = id;
       nodes[newNodeId].parentType = eventType;
@@ -102,16 +112,17 @@ class EventHandler {
     const newY = cl.data.captor.y / this.totalScale + prevYAbs;
     const camera = graphObj.sigma.camera;
 
+		/* Treat the click depending if its selection or deselection */
     if (this.clickedNodes.length === 0 || this.clickedNodes[this.clickedNodes.length - 1] !== id) {
       this.clickedNodes.push(id);
       this.camPos.push([newX, newY]);
 
+			/* Change node color */
+			cl.data.node.color = NODE_COLOR_CLICK;
       /* Draw the neighbor nodes */
       this.addNeighbors(id, graphObj, 'click');
-
       /* Adjust the scale */
       this.totalScale *= camera.settings("zoomingRatio");
-
       /* Zoom in */
       sigma.misc.animation.camera(camera, {
         x: newX,
@@ -124,12 +135,12 @@ class EventHandler {
       this.clickedNodes.pop();
       this.camPos.pop();
 
+			/* Change node color */
+			cl.data.node.color = NODE_COLOR;
       /* Remove the neighbor nodes */
       this.removeNeighbors(id, graphObj, 'click');
-
       /* Adjust the scale */
       this.totalScale /= camera.settings("zoomingRatio");
-
       const newCamPos = this.camPos[this.camPos.length - 1];
       /* Zoom out */
       sigma.misc.animation.camera(camera, {
@@ -198,6 +209,12 @@ class Graph {
         this.nodes[node.id] = node;
         this.drawnNodes[node.id] = 0;
       }
+
+			/* Sort neighbors in decreasing order by size */
+			for (const key in this.outNei)
+				this.outNei[key].sort((node1, node2) => this.nodes[node2.target].size - this.nodes[node1.target].size);
+			for (const key in this.inNei)
+				this.inNei[key].sort((node1, node2) => this.nodes[node2.source].size - this.nodes[node1.source].size);
     });
 	}
 
@@ -243,47 +260,51 @@ class Graph {
   }
 }
 
+function createTimeSlider(graph, eventHandler) {
+	/* Make slider go through all the year's days */
+	const time_range = d3.range(1, 366).map((d) => new Date(2017, 0, d));
+	const time_div_width = parseInt(d3.select('#time_slider').style("width"));
+	const slider_width = parseInt(time_div_width * 0.9);
+	const slider_spacing = parseInt((time_div_width - slider_width) / 2);
+	let time_slider = d3.sliderHorizontal()
+		.min(d3.min(time_range))
+		.max(d3.max(time_range))
+		.tickFormat(d3.timeFormat("%d/%m"))
+		.width(slider_width);
+	let slider_div = d3.select('#time_slider').append('svg')
+		.attr('width', "100%")
+		.attr('height', "100%")
+		.append('g')
+		.attr('transform', `translate(${slider_spacing}, 0)`);
+	slider_div.call(time_slider);
+
+	/* Display the graph according to the appropriate data file */
+	let date = '01/01';
+	time_slider.on('onchange', (val) => {
+		const new_date = d3.timeFormat('%m/%d')(val);
+		/* Change the graph only if the date changed */
+		if (new_date !== date) {
+			date = new_date;
+			eventHandler.reset();
+			graph.dataFile = DATA_DIR + `month_${date}.json`;
+			graph.generateRepresentation();
+			graph.draw();
+		}
+	});
+}
+
 whenDocumentLoaded(() => {
   let eventHandler = new EventHandler();
   let graph = new Graph(INIT_GRAPH, eventHandler);
   const button = d3.select('#article_button');
 
 	/* Insert a slider to select day for which to display nodes */
-	const time_range = d3.range(1, 366).map((d) => new Date(2017, 0, d));
+	createTimeSlider(graph, eventHandler);
 
-	const time_slider = d3.sliderHorizontal()
-		.min(d3.min(time_range))
-		.max(d3.max(time_range))
-		.tickFormat(d3.timeFormat("%d/%m"))
-		.width(900);
-
-	const slider_div = d3.select('#time_slider').append('svg')
-		.attr('width', "100%")
-		.attr('height', "5%")
-		.append('g')
-		.attr('transform', 'translate(10, 0)');
-
-	slider_div.call(time_slider);
-
-	let date = '01/01';
-	time_slider.on('onchange', (val) => {
-		val = d3.timeFormat('%m/%d')(val);
-
-		if (val !== date) {
-			date = val;
-			if (val === '01/01') {
-				eventHandler.reset();
-				graph.dataFile = 'data.json';
-				graph.generateRepresentation();
-			}
-			else {
-				eventHandler.reset();
-				graph.dataFile = 'data2.json';
-				graph.generateRepresentation();
-			}
-
-			graph.draw();
-		}
+	/* Modify slider size on window resize */
+	window.addEventListener("resize", () => {
+		d3.selectAll('svg').remove();
+		createTimeSlider(graph, eventHandler);
 	});
 
   /* Draw the graph */

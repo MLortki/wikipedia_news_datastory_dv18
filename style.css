@@ -35,9 +35,10 @@ form {
   max-width: 90%;
   height: 90%;
   margin: auto;
-	background-color: rgb(40, 40, 40);
 }
 
 #time_slider {
-	margin: 1%;
+	max-width: 90%;
+	height: 5%;
+	margin: auto;
 }
