@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "id": "n0",
+      "label": "A node",
+      "x": 0,
+      "y": 0,
+      "size": 3
+    },
+    {
+      "id": "n1",
+      "label": "Another node",
+      "x": 10,
+      "y": 1,
+      "size": 3
+    },
+    {
+      "id": "n2",
+      "label": "And a last one",
+      "x": 1,
+      "y": 3,
+      "size": 3
+    },
+    {
+      "id": "n3",
+      "label": "Small node 1",
+      "x": 1,
+      "y": 0,
+      "size": 2
+    },
+    {
+      "id": "n4",
+      "label": "Small node 2",
+      "x": 0,
+      "y": 1,
+      "size": 1
+    },
+    {
+      "id": "n5",
+      "label": "Small node 3",
+      "x": 1,
+      "y": 2,
+      "size": 2
+    },
+    {
+      "id": "n6",
+      "label": "Small node 4",
+      "x": 2,
+      "y": 1,
+      "size": 1
+    }
+  ],
+  "edges": [
+    {
+      "id": "e0",
+      "source": "n0",
+      "target": "n1",
+      "type": "arrow"
+    },
+    {
+      "id": "e1",
+      "source": "n1",
+      "target": "n2",
+      "type": "arrow"
+    },
+    {
+      "id": "e2",
+      "source": "n2",
+      "target": "n0",
+      "type": "arrow"
+    },
+    {
+      "id": "e3",
+      "source": "n0",
+      "target": "n3",
+      "type": "arrow"
+    },
+    {
+      "id": "e4",
+      "source": "n0",
+      "target": "n4",
+      "type": "arrow"
+    },
+    {
+      "id": "e5",
+      "source": "n0",
+      "target": "n5",
+      "type": "arrow"
+    },
+    {
+      "id": "e6",
+      "source": "n5",
+      "target": "n6",
+      "type": "arrow"
+    }
+  ]
+}
