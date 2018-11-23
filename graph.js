@@ -268,6 +268,11 @@ class Graph {
       nodes.sort((node1, node2) => node2.size - node1.size);
       const nodes_len = nodes.length;
 
+			// for (let i = 0; i < nodes_len; i++) {
+			// 	nodes[i].x = Math.random();
+			// 	nodes[i].y = Math.random();
+			// }
+
       for (let i = 0; i < NODES_TO_DISPLAY; i++)
         this.drawnNodes[nodes[i].id] = 1;
 
@@ -276,12 +281,12 @@ class Graph {
         s.graph.dropNode(nodes[i].id);
       }
 
-			this.sigma.startForceAtlas2({worker: true, barnesHutOptimize: false});
+			// this.sigma.startForceAtlas2({worker: true, barnesHutOptimize: false});
 
       /* Bind event handlers */
       s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
-      // s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
-      // s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
+      s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
+      s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
 
       /* Refresh graph */
       s.refresh();
