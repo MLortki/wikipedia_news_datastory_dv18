@@ -1,5 +1,5 @@
 const DATA_DIR = 'data/daily_visitors/';
-const INIT_GRAPH = 'data.json';
+const INIT_GRAPH = 'sample_data.json';
 let NODES_TO_DISPLAY = 3;
 
 /* Colors */
@@ -18,6 +18,21 @@ function whenDocumentLoaded(action) {
 		// `DOMContentLoaded` already fired
 		action();
 	}
+}
+
+/* Arrange point in a circle shape */
+function getCircle(center, radius, numPoints) {
+	const coords = [];
+	const angle_unit = 2 * Math.PI / numPoints;
+
+	for (let i = 0; i < numPoints; i++) {
+		let coord = {};
+		coord.x = center.x + radius * Math.cos(i * angle_unit);
+		coord.y = center.y + radius * Math.sin(i * angle_unit);
+		coords.push(coord);
+	}
+
+	return coords;
 }
 
 class EventHandler {
@@ -41,14 +56,22 @@ class EventHandler {
     const nodes = graphObj.nodes;
     const drawnNodes = graphObj.drawnNodes;
 
-		/* Stop layout */
-		// graphObj.sigma.stopForceAtlas2();
+		const numNodes = Math.min(NODES_TO_DISPLAY - 1, outNei.length);
+
+		/* Do nothing if there are no neighbors to add */
+		if (numNodes === 0)
+			return;
+
+		/* Get the positions of the nodes to be added */
+		const center = {'x': graphObj.nodes[id].x, 'y': graphObj.nodes[id].y};
+		console.log('Before add', center);
+		const coords = getCircle(center, 0.1, numNodes);
 
     /* Append the biggest neighbor nodes to the graph */
-		let node_cnt = 0;
+		let nodeCnt = 0;
     for (const i in outNei) {
 			/* Stop after adding enough nodes */
-			if (node_cnt == NODES_TO_DISPLAY - 1)
+			if (nodeCnt == numNodes)
 				break;
 
       const newNodeId = outNei[i].target;
@@ -56,7 +79,7 @@ class EventHandler {
       if (drawnNodes[newNodeId] === 1) {
 				/* Count the node as added if it was added through hover or click */
 				if (nodes[newNodeId].parentType === 'hover' || nodes[newNodeId].parentType === 'click')
-					node_cnt += 1;
+					nodeCnt += 1;
         /* Override event type in case of click */
         if (eventType === 'click' && nodes[newNodeId].parentType !== undefined)
           nodes[newNodeId].parentType = eventType;
@@ -64,18 +87,20 @@ class EventHandler {
       }
 
       drawnNodes[newNodeId] = 1;
-			node_cnt += 1;
+			/* Set the coordinates for the new node */
+			nodes[newNodeId].x = coords[nodeCnt].x;
+			nodes[newNodeId].y = coords[nodeCnt].y;
       /* Mark new node as added by the current node */
       nodes[newNodeId].parent = id;
       nodes[newNodeId].parentType = eventType;
 
-      const newNode = graphObj.nodes[newNodeId];
-      graph.addNode(newNode);
+      graph.addNode(nodes[newNodeId]);
       graph.addEdge(outNei[i]);
+			nodeCnt += 1;
     }
 
-		/* Restart layout */
-		// graphObj.sigma.startForceAtlas2();
+		console.log('After add:', {'x': graphObj.nodes[id].x, 'y': graphObj.nodes[id].y});
+
     /* Redraw the graph */
     graphObj.sigma.refresh();
   }
@@ -87,9 +112,6 @@ class EventHandler {
     const graph = graphObj.sigma.graph;
     const nodes = graphObj.nodes;
     const drawnNodes = graphObj.drawnNodes;
-
-		/* Stop layout */
-		// graphObj.sigma.stopForceAtlas2();
 
     /* Remove the nodes that were previously added on hover */
     for (const i in outNei) {
@@ -107,11 +129,13 @@ class EventHandler {
       graph.dropNode(newNodeId);
     }
 
-		/* Restart layout */
-		// graphObj.sigma.startForceAtlas2();
     /* Redraw the graph */
     graphObj.sigma.refresh();
   }
+
+	highlightNeighbors(id, graphObj, eventType) {
+		
+	}
 
   /* Node click */
   onNodeClick(cl, graphObj) {
@@ -168,7 +192,7 @@ class EventHandler {
     const id = hov.data.node.id;
 
     /* Add neighbors of the node */
-    this.addNeighbors(id, graphObj, 'hover');
+    this.highlightNeighbors(id, graphObj, 'onHover');
   }
 
   /* Hover out of node */
@@ -177,7 +201,7 @@ class EventHandler {
     const id = hov.data.node.id;
 
     /* Remove neighbors of the node */
-    this.removeNeighbors(id, graphObj, 'hover');
+    this.highlightNeighbors(id, graphObj, 'outHover');
   }
 }
 
@@ -186,25 +210,9 @@ class Graph {
     this.dataFile = dataFile;
     this.eventHandler = eventHandler;
     this.sigma = new sigma('graph');
+		this.sigma.cameras[0].goTo({x: 0, y: 0, angle: 0, ratio: 2});
 
-		/* Start the force layout */
-		let config = {
-		  nodeMargin: 3.0,
-		  scaleNodes: 1.3
-		};
-
-		// Configure the algorithm
-		let listener = this.sigma.configNoverlap(config);
-
-		// Bind all events:
-		listener.bind('start stop interpolate', function(event) {
-		  console.log(event.type);
-		});
-
-		// Start the algorithm:
-		this.sigma.startNoverlap();
-
-    this.generateRepresentation(dataFile);
+    this.generateRepresentation();
   }
 
 	generateRepresentation() {
@@ -213,6 +221,7 @@ class Graph {
     this.inNei = {};
     this.nodes = {};
     this.drawnNodes = {};
+		this.sortedNodes = [];
 
     d3.json(this.dataFile).then((data) => {
       /* Store in and out neighbours for each node */
@@ -237,11 +246,20 @@ class Graph {
         this.drawnNodes[node.id] = 0;
       }
 
+			/* Get a sorted list of nodes */
+			for (const key in this.nodes) {
+				this.sortedNodes.push(this.nodes[key]);
+			}
+			this.sortedNodes.sort((node1, node2) => node2.size - node1.size);
+
 			/* Sort neighbors in decreasing order by size */
 			for (const key in this.outNei)
 				this.outNei[key].sort((node1, node2) => this.nodes[node2.target].size - this.nodes[node1.target].size);
 			for (const key in this.inNei)
 				this.inNei[key].sort((node1, node2) => this.nodes[node2.source].size - this.nodes[node1.source].size);
+
+			/* Draw the graph */
+			this.draw();
     });
 	}
 
@@ -262,35 +280,43 @@ class Graph {
       defaultNodeColor: NODE_COLOR,
     });
 
-    sigma.parsers.json(this.dataFile, s, () => {
-      /* Keep only the largest nodes */
-      let nodes = s.graph.nodes();
-      nodes.sort((node1, node2) => node2.size - node1.size);
-      const nodes_len = nodes.length;
+		/* Get nodes coordinates */
+		const numNodes = Math.min(NODES_TO_DISPLAY, this.sortedNodes.length);
+		const radius = numNodes / 2;
+		const center = {'x': 1.5 * radius, 'y': 1.5 * radius};
+		const coords = getCircle(center, radius, numNodes);
 
-			// for (let i = 0; i < nodes_len; i++) {
-			// 	nodes[i].x = Math.random();
-			// 	nodes[i].y = Math.random();
-			// }
+		/* Draw the most popular nodes */
+		for (let i = 0; i < numNodes; i++) {
+			const node = this.sortedNodes[i];
+			node.x = coords[i].x;
+			node.y = coords[i].y;
+			s.graph.addNode(node);
+			this.drawnNodes[node.id] = 1;
+		}
 
-      for (let i = 0; i < NODES_TO_DISPLAY; i++)
-        this.drawnNodes[nodes[i].id] = 1;
+		for (let i = numNodes; i < this.sortedNodes.length; i++)
+			this.drawnNodes[this.sortedNodes[i].id] = 0;
 
-      for (let i = NODES_TO_DISPLAY; i < nodes_len; i++) {
-        this.drawnNodes[nodes[i].id] = 0;
-        s.graph.dropNode(nodes[i].id);
-      }
+		/* Draw the edges */
+		for (let i = 0; i < numNodes; i++) {
+			const neighs = this.outNei[this.sortedNodes[i].id];
+			/* Skip drawing edges if the node has no outgoing edges */
+			if (neighs === undefined)
+				continue;
 
-			// this.sigma.startForceAtlas2({worker: true, barnesHutOptimize: false});
+			for (let j = 0; j < neighs.length; j++)
+				if (this.drawnNodes[neighs[j].target] === 1)
+					s.graph.addEdge(neighs[j]);
+		}
 
-      /* Bind event handlers */
-      s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
-      s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
-      s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
+		/* Bind event handlers */
+		s.bind("clickNode", (cl) => evHand.onNodeClick(cl, this));
+    s.bind("overNode", (hov) => evHand.onOverNode(hov, this));
+    s.bind("outNode", (hov) => evHand.onOutNode(hov, this));
 
-      /* Refresh graph */
-      s.refresh();
-    });
+		/* Refresh graph */
+    s.refresh();
   }
 }
 
@@ -346,6 +372,4 @@ whenDocumentLoaded(() => {
     NODES_TO_DISPLAY = parseInt(document.getElementById('article_text').value);
     graph.draw();
   });
-
-  graph.draw();
 });
