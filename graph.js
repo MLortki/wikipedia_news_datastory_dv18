@@ -44,10 +44,8 @@ class EventHandler {
     this.totalScale = 1;
   }
 
-	reset() {
-		this.clickedNodes = [];
-    this.camPos = [[0, 0]];
-    this.totalScale = 1;
+	getFocusNode() {
+		return this.clickedNodes[this.clickedNodes.length - 1];
 	}
 
 	highlightNeighbors(id, graphObj, eventType) {
@@ -90,44 +88,61 @@ class EventHandler {
 			this.clickedNodes.push(id);
       this.camPos.push([newX, newY]);
 
-      /* Zoom in */
-      sigma.misc.animation.camera(camera, {
-        x: newX,
-        y: newY
-      }, {
-        duration: 1000,
+			/* Zoom to the normal ratio */
+			sigma.misc.animation.camera(camera, {
+				x: prevXAbs,
+				y: prevYAbs,
+				ratio: 1
+			}, {
+				duration: 1000,
 				onComplete: () => {
-					/* Change focus through node color */
-					graphObj.nodes[id].color = NODE_COLOR_CLICK;
-					if (this.clickedNodes.length > 1) {
-						const prevNode = this.clickedNodes[this.clickedNodes.length - 2];
-						graphObj.nodes[prevNode].color = NODE_COLOR;
-					}
-					/* Add the nodes of interest */
-		      graphObj.draw(id);
+					/* Move to the selected node */
+					sigma.misc.animation.camera(camera, {
+						x: newX,
+						y: newY
+					}, {
+						duration: 1000,
+						onComplete: () => {
+							/* Change focus through node color */
+							if (this.clickedNodes.length > 1) {
+								const prevNode = this.clickedNodes[this.clickedNodes.length - 2];
+								graphObj.nodes[prevNode].color = NODE_COLOR;
+							}
+							/* Add the nodes of interest */
+							graphObj.draw(id);
+						}
+					});
 				}
-      });
+			});
     } else {
       this.clickedNodes.pop();
-      this.camPos.pop();
+      const prevPos = this.camPos.pop();
 
       const newCamPos = this.camPos[this.camPos.length - 1];
-      /* Zoom out */
-      sigma.misc.animation.camera(camera, {
-        x: newCamPos[0],
-        y: newCamPos[1]
-      }, {
-        duration: 1000,
+			/* Zoom to the normal ratio */
+			sigma.misc.animation.camera(camera, {
+				x: prevPos[0],
+				y: prevPos[1],
+				ratio: 1
+			}, {
+				duration: 1000,
 				onComplete: () => {
-					/* Change focus to the previously selected node or to the main view */
-					const prevNode = this.clickedNodes[this.clickedNodes.length - 1];
-					/* Change focus through node color */
-					graphObj.nodes[id].color = NODE_COLOR;
-					if (prevNode !== undefined)
-						graphObj.nodes[prevNode].color = NODE_COLOR_CLICK;
-					graphObj.draw(prevNode);
+					/* Move to the previous focus */
+					sigma.misc.animation.camera(camera, {
+						x: newCamPos[0],
+						y: newCamPos[1]
+					}, {
+						duration: 1000,
+						onComplete: () => {
+							/* Change focus to the previously selected node or to the main view */
+							const prevNode = this.clickedNodes[this.clickedNodes.length - 1];
+							/* Change focus through node color */
+							graphObj.nodes[id].color = NODE_COLOR;
+							graphObj.draw(prevNode);
+						}
+					});
 				}
-      });
+			});
     }
   }
 
@@ -155,8 +170,6 @@ class Graph {
     this.dataFile = dataFile;
     this.eventHandler = eventHandler;
     this.sigma = new sigma('graph');
-		// this.sigma.cameras[0].goTo({x: 0, y: 0, angle: 0, ratio: 2});
-		// this.sigma.settings('enableCamera', false);
 
 		/* Keep an internal representation of the graph */
 		this.outNei = {};
@@ -165,7 +178,7 @@ class Graph {
 		this.generateRepresentation(true);
   }
 
-	generateRepresentation(firstDraw=false) {
+	generateRepresentation(firstDraw=false, node=undefined) {
 		/* Keep a representation of the graph */
 		this.sortedNodes = [];
 
@@ -213,10 +226,10 @@ class Graph {
 							this.nodes[node2.source].size - this.nodes[node1.source].size);
 
 					/* Draw the graph */
-					this.draw();
+					this.draw(node);
 				});
 			} else {
-				this.draw();
+				this.draw(node);
 			}
     });
 	}
@@ -228,6 +241,7 @@ class Graph {
     /* Clear the graph and unbind methods, in case you redraw */
     s.graph.clear();
 		this.drawnNodes = {};
+		this.drawnEdges = {};
     s.unbind(["clickNode", "overNode", "outNode"]);
 
     /* Set the display settings for the sigma instance */
@@ -247,18 +261,25 @@ class Graph {
 			numNodes = Math.min(NODES_TO_DISPLAY - 1, nodesArray.length);
 
 			/* Draw the main node */
-			s.graph.addNode(this.nodes[node]);
+			this.nodes[node].color = NODE_COLOR_CLICK;
+			if (this.drawnNodes[node] === undefined)
+				s.graph.addNode(this.nodes[node]);
 			this.drawnNodes[node] = 1;
 		}
 
 		/* Draw nodes */
 		for (let i = 0; i < numNodes; i++) {
 			const newNode = nodesArray[i];
-			s.graph.addNode(newNode);
+			if (this.drawnNodes[newNode.id] === undefined)
+				s.graph.addNode(newNode);
 			this.drawnNodes[newNode.id] = 1;
 			/* Draw the main node's outgoing edges */
-			if (node !== undefined)
-				s.graph.addEdge(this.outNei[node][i]);
+			if (node !== undefined) {
+				const edgeId = node + '_' + this.outNei[node][i].target;
+				if (this.drawnEdges[edgeId] === undefined)
+					s.graph.addEdge(this.outNei[node][i]);
+				this.drawnEdges[edgeId] === 1;
+			}
 		}
 		/* Draw the edges */
 		for (let i = 0; i < numNodes; i++) {
@@ -271,8 +292,12 @@ class Graph {
 			for (let j = 0; j < neighs.length; j++) {
 				const dst = neighs[j].target;
 				/* Check that the neighbor is drawn */
-				if (this.drawnNodes[dst] === 1)
-					s.graph.addEdge(neighs[j]);
+				if (this.drawnNodes[dst] === 1) {
+					const edgeId = neighs[j].source + '_' + neighs[j].target;
+					if (this.drawnEdges[edgeId] === undefined)
+						s.graph.addEdge(neighs[j]);
+					this.drawnEdges[edgeId] === 1;
+				}
 			}
 		}
 
@@ -311,9 +336,9 @@ function createTimeSlider(graph, eventHandler) {
 		/* Change the graph only if the date changed */
 		if (new_date !== date) {
 			date = new_date;
-			eventHandler.reset();
 			graph.dataFile = DATA_DIR + `data${date}.json`;
-			graph.generateRepresentation();
+			/* Keep focus on the current node */
+			graph.generateRepresentation(false, eventHandler.getFocusNode());
 		}
 	});
 }
@@ -335,6 +360,7 @@ whenDocumentLoaded(() => {
   /* Draw the graph */
   button.on("click", () => {
     NODES_TO_DISPLAY = parseInt(document.getElementById('article_text').value);
-    graph.draw();
+		/* Keep the focus on the current node */
+		graph.draw(eventHandler.getFocusNode());
   });
 });
