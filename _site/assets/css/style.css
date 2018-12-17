@@ -422,8 +422,30 @@ footer a:hover {
     margin: 0 auto; } }
 /* Mobile Landscape Size to Tablet Portrait (devices and browsers) */
 /* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
+:root {
+  --back_color: rgb(40, 40, 40);
+  --title_color: rgb(117, 117, 117);
+  --header_color: rgb(200, 200, 200);
+  --text_color: rgb(214, 214, 214); }
+
+body {
+  color: var(--text_color);
+  background: var(--back_color); }
+
+header h1 {
+  color: var(--title_color); }
+
+h1 {
+  color: var(--header_color); }
+
+.inner {
+  width: 60%; }
+
 .row {
   height: 90%; }
+
+#container {
+  background: var(--back_color); }
 
 #popularity_viz {
   height: 500px; }
@@ -438,8 +460,8 @@ footer a:hover {
 
 #popularity_time_slider {
   max-width: 90%;
-  height: 5%;
+  height: 10%;
   margin: auto; }
 
 #map_container {
-  margin-left: 20%; }
+  /*margin-left: 20%;*/ }
