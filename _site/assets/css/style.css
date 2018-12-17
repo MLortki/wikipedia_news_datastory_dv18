@@ -440,3 +440,6 @@ footer a:hover {
   max-width: 90%;
   height: 5%;
   margin: auto; }
+
+#map_container {
+  margin-left: 20%; }
