@@ -285,7 +285,7 @@ class Graph {
       edgeColor: 'default',
       defaultEdgeColor: EDGE_COLOR,
       defaultNodeColor: NODE_COLOR,
-			sideMargin: 1000
+			sideMargin: 800
     });
 
 		/* Draw the most popular nodes */
