@@ -1,11 +1,12 @@
-const DATA_DIR = 'data/daily_visitors/';
+const DATA_DIR = 'data/';
+const NODES_FILE = DATA_DIR + 'nodes.json';
 const EDGES_FILE = DATA_DIR + 'edges.json';
 const INIT_GRAPH = DATA_DIR + 'data01_01.json';
 let NODES_TO_DISPLAY = 5;
 
 /* Colors */
 const NODE_COLOR = '#ec5148';
-const NODE_COLOR_HOVER = '#7edf29';
+const NODE_COLOR_HOVER = '#f9918b';
 const NODE_COLOR_CLICK = '#7edf29';
 const EDGE_COLOR = '#489fec';
 const EDGE_COLOR_HOVER = '#ffffff';
@@ -52,8 +53,16 @@ class EventHandler {
 		const neighs = graphObj.outNei[id];
 		let color = EDGE_COLOR_HOVER;
 
-		if (eventType === 'outHover')
+		/* Change hovered node color */
+		graphObj.sigma.graph.nodes(id).color = NODE_COLOR_HOVER;
+
+		if (eventType === 'outHover') {
+			if (graphObj.nodes[id].color === undefined)
+				graphObj.sigma.graph.nodes(id).color = NODE_COLOR;
+			else
+				graphObj.sigma.graph.nodes(id).color = graphObj.nodes[id].color;
 			color = EDGE_COLOR;
+		}
 
 		/* Re-add already drawn edges with a new color */
 		for (let i in neighs) {
@@ -81,6 +90,7 @@ class EventHandler {
     const newY = cl.data.captor.y / this.totalScale + prevYAbs;
     const camera = graphObj.sigma.camera;
 		const graph = graphObj.sigma.graph;
+		const zoomDuration = (camera.ratio === 1) ? 0 : 1000;
 
 		/* Treat the click depending if it's selection or deselection */
     if (this.clickedNodes.length === 0 || this.clickedNodes[this.clickedNodes.length - 1] !== id) {
@@ -94,7 +104,7 @@ class EventHandler {
 				y: prevYAbs,
 				ratio: 1
 			}, {
-				duration: 1000,
+				duration: zoomDuration,
 				onComplete: () => {
 					/* Move to the selected node */
 					sigma.misc.animation.camera(camera, {
@@ -125,7 +135,7 @@ class EventHandler {
 				y: prevPos[1],
 				ratio: 1
 			}, {
-				duration: 1000,
+				duration: zoomDuration,
 				onComplete: () => {
 					/* Move to the previous focus */
 					sigma.misc.animation.camera(camera, {
@@ -183,20 +193,35 @@ class Graph {
 		this.sortedNodes = [];
 
     d3.json(this.dataFile).then((nodes) => {
-			/* Store nodes */
-			for (const i in nodes) {
-				const node = nodes[i];
-				this.nodes[node.id] = node;
-			}
-
-			/* Get a sorted list of nodes */
-			for (const key in this.nodes) {
-				this.sortedNodes.push(this.nodes[key]);
-			}
-			this.sortedNodes.sort((node1, node2) => node2.size - node1.size);
-
-			/* Also get data about the edges when first loading the graph */
+			/* Also get data about node coordinates and the edges when first loading
+			the graph */
 			if (firstDraw === true) {
+				/* Store nodes */
+				for (const i in nodes) {
+					const node = {
+						'id': nodes[i].id,
+						'size': nodes[i].absolute_size
+					}
+					this.nodes[node.id] = node;
+				}
+
+				/* Get a sorted list of nodes */
+				for (const key in this.nodes) {
+					this.sortedNodes.push(this.nodes[key]);
+				}
+				this.sortedNodes.sort((node1, node2) => node2.size - node1.size);
+
+				/* Nodes data */
+				d3.json(NODES_FILE).then((nodes) => {
+					for (const i in nodes) {
+						const id = nodes[i].id;
+						this.nodes[id].label = nodes[i].label;
+						this.nodes[id].x = nodes[i].x;
+						this.nodes[id].y = nodes[i].y;
+					}
+				});
+
+				/* Edges data */
 				d3.json(EDGES_FILE).then((edges) => {
 					/* Store in and out neighbours for each node */
 					for (const i in edges) {
@@ -229,6 +254,16 @@ class Graph {
 					this.draw(node);
 				});
 			} else {
+				/* Only change node size */
+				for (const i in nodes)
+					this.nodes[nodes[i].id].size = nodes[i].absolute_size;
+
+				/* Get a sorted list of nodes */
+				for (const key in this.nodes) {
+					this.sortedNodes.push(this.nodes[key]);
+				}
+				this.sortedNodes.sort((node1, node2) => node2.size - node1.size);
+
 				this.draw(node);
 			}
     });
@@ -250,6 +285,7 @@ class Graph {
       edgeColor: 'default',
       defaultEdgeColor: EDGE_COLOR,
       defaultNodeColor: NODE_COLOR,
+			sideMargin: 1000
     });
 
 		/* Draw the most popular nodes */
@@ -275,7 +311,7 @@ class Graph {
 			this.drawnNodes[newNode.id] = 1;
 			/* Draw the main node's outgoing edges */
 			if (node !== undefined) {
-				const edgeId = node + '_' + this.outNei[node][i].target;
+				const edgeId = this.outNei[node][i].id;
 				if (this.drawnEdges[edgeId] === undefined)
 					s.graph.addEdge(this.outNei[node][i]);
 				this.drawnEdges[edgeId] === 1;
@@ -293,7 +329,7 @@ class Graph {
 				const dst = neighs[j].target;
 				/* Check that the neighbor is drawn */
 				if (this.drawnNodes[dst] === 1) {
-					const edgeId = neighs[j].source + '_' + neighs[j].target;
+					const edgeId = neighs[j].id;
 					if (this.drawnEdges[edgeId] === undefined)
 						s.graph.addEdge(neighs[j]);
 					this.drawnEdges[edgeId] === 1;
