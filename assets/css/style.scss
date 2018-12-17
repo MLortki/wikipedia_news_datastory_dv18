@@ -7,6 +7,11 @@
     height: 90%;
 }
 
+.container {
+	background-color: rgb(40, 40, 40);
+}
+
+
 #popularity_viz {
     height: 500px;
 }
@@ -28,11 +33,26 @@
 }
 
 
+#map_container {
+  margin-left: -25%;
+}
 
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  text-align: left;
+  padding: 9px;
+  width: auto;
+  height: auto;
+  font-size: 11px;
+  background: white;
+  border: 0;
+  border-radius: 5px;
+}
 
-#map_container{
-
-  margin-left: 20%;
+.h4 {
+  font-size:11px;
+  font-weight:100
 }
 
 

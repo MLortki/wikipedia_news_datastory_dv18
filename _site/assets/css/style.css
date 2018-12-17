@@ -425,6 +425,9 @@ footer a:hover {
 .row {
   height: 90%; }
 
+.container {
+  background-color: #282828; }
+
 #popularity_viz {
   height: 500px; }
 
@@ -442,4 +445,20 @@ footer a:hover {
   margin: auto; }
 
 #map_container {
-  margin-left: 20%; }
+  margin-left: -25%; }
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  text-align: left;
+  padding: 9px;
+  width: auto;
+  height: auto;
+  font-size: 11px;
+  background: white;
+  border: 0;
+  border-radius: 5px; }
+
+.h4 {
+  font-size: 11px;
+  font-weight: 100; }
