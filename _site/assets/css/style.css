@@ -430,7 +430,11 @@ footer a:hover {
 
 body {
   color: var(--text_color);
-  background: var(--back_color); }
+  background: var(--back_color);
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-content: center; }
 
 header h1 {
   color: var(--title_color); }
@@ -451,7 +455,8 @@ h1 {
   height: 500px; }
 
 #news_viz {
-  height: 500px; }
+  height: 500px;
+  display: inline-block; }
 
 #popularity_graph {
   max-width: 100%;
@@ -464,7 +469,11 @@ h1 {
   margin: auto; }
 
 #map_container {
-  margin-left: -25%; }
+  margin-left: -37%; }
+
+#svg_map {
+  width: 100%;
+  height: auto; }
 
 div.tooltip {
   position: absolute;

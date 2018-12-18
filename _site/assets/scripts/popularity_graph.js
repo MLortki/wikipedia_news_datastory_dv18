@@ -426,10 +426,10 @@ function prepareGraph(settings) {
     createTimeSlider(sliderDiv, sliderGranularity, graph, eventHandler);
 
     /* Modify slider size on window resize */
-    window.addEventListener("resize", () => {
-        d3.selectAll('svg').remove();
-        createTimeSlider(sliderDiv, sliderGranularity, graph, eventHandler);
-    });
+    // window.addEventListener("resize", () => {
+    //     // d3.selectAll('svg').remove();
+    //     createTimeSlider(sliderDiv, sliderGranularity, graph, eventHandler);
+    // });
 
     // /* Draw the graph */
     // button.on("click", () => {
