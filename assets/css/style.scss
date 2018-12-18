@@ -56,5 +56,23 @@ h1 {
 }
 
 #map_container{
-  /*margin-left: 20%;*/
+  margin-left: -25%;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  width: auto;
+  height: auto;
+  font-size: 12px;
+  padding: 10px;
+  background: white;
+  border: 0;
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.toolTipText {
+  color: black;
+  margin-bottom: 3px;
 }

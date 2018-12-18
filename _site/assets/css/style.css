@@ -464,20 +464,20 @@ h1 {
   margin: auto; }
 
 #map_container {
-  /*margin-left: 20%;*/ }
+  margin-left: -25%; }
 
-.tooltip {
+div.tooltip {
   position: absolute;
-  pointer-events: none;
   text-align: left;
-  padding: 9px;
   width: auto;
   height: auto;
-  font-size: 11px;
+  font-size: 12px;
+  padding: 10px;
   background: white;
   border: 0;
-  border-radius: 5px; }
+  border-radius: 5px;
+  pointer-events: none; }
 
-.h4 {
-  font-size: 11px;
-  font-weight: 100; }
+.toolTipText {
+  color: black;
+  margin-bottom: 3px; }

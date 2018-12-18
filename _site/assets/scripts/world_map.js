@@ -5,18 +5,13 @@
 //   constructor() {
 
 
-// var width = screen.width * .8,
-//   height = screen.height * .65,
-//   centered;
-
-
-var width = screen.width *.8,
-    height = screen.height * .65,
-    centered;
+var width = screen.width * .8,
+  height = screen.height * .65,
+  centered;
 
 
 const projection = d3.geoEquirectangular()
-  .scale(153)
+  .scale(90)
   .translate([width / 2, height / 2])
 
 
@@ -45,76 +40,30 @@ console.log("before method");
 d3.json("assets/data/world.geo.json")
   .then(function(map_data) {
 
-    // console.log("why so serious");
     console.log(map_data);
-
-    // create map
-    // g.selectAll("path")
-    //   .data(map_data.features)
-    //   .enter()
-    //   .append("path")
-    //   .attr("class", "code") // give them a class for styling and access later
-    //   .attr("d", path)
-    //   // .style("stroke", "white")
-    //   // .style('fill', function(d) {
-    //   //   return getColor(d.properties[map_column], coloring);
-    //   // })
-    //
-    //   .on("mouseover", function() {
-    //     d3.select(this).transition()
-    //       .duration("100")
-    //       .style("fill-opacity", ".1");
-    //
-    //     // Show tooltip_map
-    //     tooltip_map.transition()
-    //       .duration(200)
-    //       .style("opacity", .9);
-    //
-    //   })
-    //   .on("mousemove", function(d) {
-    //
-    //     // Place the tooltip_map
-    //     tooltip_map.style("left", (d3.mouse(this)[0]) + "px")
-    //       .style("top", d3.event.pageY + "px");
-    //
-    //     //display tooltip text
-    //     tooltip_map.html("<h4> Postal Code " + d.properties.ZIP + "</h4>");
-    //
-    //   })
-    //   .on("mouseout", function() {
-    //     tooltip_map.transition()
-    //       .duration(200)
-    //       .style("opacity", 0);
-    //     d3.select(this)
-    //       .transition()
-    //       .duration("100")
-    //       .style("fill-opacity", "1")
-    //   })
-    // .on("click", countryClicked)
-
 
     g.selectAll("path")
       .data(map_data.features)
       .enter()
       .append("path")
-      .attr("class", "land") // give them a class for styling and access later
+      .attr("class", "country") // give them a class for styling and access later
       .attr("d", path)
       .style("stroke", "white")
-      // .style("stroke", "black")
       .style('fill', function(d) {
         return "#F2D165";
       })
       .on("mouseover", function() {
-          d3.select(this).transition()
-            .duration("100")
-            .style("fill-opacity", ".1");
+        d3.select(this).transition()
+          .duration("100")
+          // .style("fill-opacity", ".1");
+          .style("fill", "rgb(214, 195, 135)");
 
-          // Show tooltip_map
-          tooltip_map.transition()
-            .duration(200)
-            .style("opacity", .9);
+        // Show tooltip_map
+        tooltip_map.transition()
+          .duration(200)
+          .style("opacity", .9);
 
-        })
+      })
       .on("mousemove", function(d) {
 
         console.log(d);
@@ -124,7 +73,11 @@ d3.json("assets/data/world.geo.json")
           .style("top", d3.event.pageY + "px");
 
         //display tooltip text
-        tooltip_map.html("<p>Country: " + d.properties.formal_en + "</p>");
+        tooltip_map.html("<h3>Country: " + d.properties.admin + "</h3>" +
+          "<p class='toolTipText'>Continent: " + d.properties.continent + "</p>" +
+          "<p class='toolTipText'>Economy: " + d.properties.economy + "</p>" +
+          "<p class='toolTipText'>Formal: " + d.properties.formal_en + "</p>" +
+          "<p class='toolTipText'>Region: " + d.properties.region_wb + "</p>");
 
       })
       .on("mouseout", function() {
@@ -134,7 +87,7 @@ d3.json("assets/data/world.geo.json")
         d3.select(this)
           .transition()
           .duration("100")
-          .style("fill-opacity", "1")
+          .style("fill", "#F2D165")
       });
 
     // svg_map.append("g")
