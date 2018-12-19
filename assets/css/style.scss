@@ -13,8 +13,6 @@
 body {
 	color: var(--text_color);
 	background: var(--back_color);
-
-
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
@@ -30,11 +28,26 @@ h1 {
 }
 
 .inner {
-	width: 60%;
+	width: 80%;
 }
 
 .row {
-    height: 90%;
+  width: 100%;
+  height: 90%;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.node_selector {
+  width: 100%;
+  height: 5%;
+  margin-top: 2%;
+}
+
+.container {
+  max-width: 100%;
+  padding-right: 0;
+  padding-left: 0;
 }
 
 #container {
@@ -42,33 +55,40 @@ h1 {
 }
 
 #popularity_viz {
-    height: 500px;
+  height: 500px;
 }
 
 #news_viz {
-    height: 500px;
-		display: inline-block;
+  height: 500px;
+	display: inline-block;
 }
 
-#popularity_graph {
+.graph {
   max-width: 100%;
   height: 100%;
+  margin: 0;
+  padding-left: 0;
+}
+
+.slider {
+  max-width: 90%;
+  height: 10%;
   margin: auto;
 }
 
 #popularity_time_slider {
-    max-width: 90%;
-    height: 10%;
-    margin: auto;
+  max-width: 90%;
+  height: 10%;
+  margin: auto;
 }
 
 #map_container{
-  margin-left: -37%;
+  padding: 0;
 }
 
 #svg_map {
 	width: 100%;
-	height: auto;
+	height: 100%;
 }
 
 div.tooltip {

@@ -11,8 +11,8 @@ var width = screen.width * .8,
 
 
 const projection = d3.geoEquirectangular()
-  .scale(90)
-  .translate([width / 2, height / 2])
+  .scale(75)
+  .translate([width / 6, height / 3]);
 
 
 var path = d3.geoPath()
@@ -33,15 +33,11 @@ var tooltip_map = d3.select("body")
   .style("opacity", 0);
 
 
-console.log("before method");
 //d3.json("assets/data/world_map.json", function(error, map_data) {\
 
 // d3.json("assets/data/world-2.json")
 d3.json("assets/data/world.geo.json")
   .then(function(map_data) {
-
-    console.log(map_data);
-
     g.selectAll("path")
       .data(map_data.features)
       .enter()
@@ -65,9 +61,6 @@ d3.json("assets/data/world.geo.json")
 
       })
       .on("mousemove", function(d) {
-
-        console.log(d);
-
         // Place the tooltip_map
         tooltip_map.style("left", (d3.mouse(this)[0]) + "px")
           .style("top", d3.event.pageY + "px");

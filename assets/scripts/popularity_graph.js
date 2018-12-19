@@ -4,6 +4,7 @@ const EDGES_FILE = DATA_DIR + 'edges.json';
 const DAY_INIT_GRAPH = DATA_DIR + 'data01_01.json';
 const MONTH_INIT_GRAPH = DATA_DIR + 'data1.json';
 let NODES_TO_DISPLAY = 5;
+const NODES_LIMIT = 200;
 
 /* Colors */
 const NODE_COLOR = '#ec5148';
@@ -369,9 +370,9 @@ class Graph {
 
 function createTimeSlider(div, granularity, graph, eventHandler) {
     /* Make slider go through all the year's days/months */
-    const time_div_width = parseInt(d3.select(div).style("width"));
-    const slider_width = parseInt(time_div_width * 0.9);
-    const slider_spacing = parseInt((time_div_width - slider_width) / 2);
+    const div_width = parseInt(d3.select(div).style("width"));
+    const slider_width = parseInt(div_width * 0.9);
+    const slider_spacing = parseInt((div_width - slider_width) / 2);
     let time_range = d3.range(1, 366).map((d) => new Date(2017, 0, d));
     let tick_format = d3.timeFormat('%d/%m');
     let date = '01_01';
@@ -381,7 +382,7 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
         date = MONTH_TO_ID['January'];
     }
 
-    const time_slider = d3.sliderHorizontal()
+    const slider = d3.sliderHorizontal()
         .min(d3.min(time_range))
         .max(d3.max(time_range))
         .tickFormat(tick_format)
@@ -391,10 +392,10 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
         .attr('height', "100%")
         .append('g')
         .attr('transform', `translate(${slider_spacing}, 0)`);
-    slider_div.call(time_slider);
+    slider_div.call(slider);
 
     /* Display the graph according to the appropriate data file */
-    time_slider.on('onchange', (val) => {
+    slider.on('onchange', (val) => {
         let new_date = parseInt(val) + 1;
         if (granularity == 'day')
             new_date = d3.timeFormat('%d_%m')(val);
@@ -409,10 +410,39 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
     });
 }
 
+function createNodesSlider(div, graph, eventHandler) {
+    const div_width = parseInt(d3.select(div).style("width"));
+    const slider_width = parseInt(div_width * 0.9);
+    const slider_spacing = parseInt((div_width - slider_width) / 2);
+
+    const slider = d3.sliderHorizontal()
+        .min(0)
+        .max(NODES_LIMIT)
+        .step(5)
+        .width(slider_width);
+    const slider_div = d3.select(div).append('svg')
+        .attr('width', "100%")
+        .attr('height', "100%")
+        .append('g')
+        .attr('transform', `translate(${slider_spacing}, 0)`);
+    slider_div.call(slider);
+
+    /* Change the number of nodes to display */
+    slider.on('onchange', (val) => {
+        NODES_TO_DISPLAY = parseInt(val);
+        /* Chnage the number displayed */
+        const p_id = div.split('_')[0] + '_nodes_text';
+        d3.select(p_id).text('Nodes: ' + val);
+        /* Redraw graph */
+        graph.draw();
+    });
+}
+
 function prepareGraph(settings) {
     /* Extract settings */
     graphDiv = settings.graphDiv;
-    sliderDiv = settings.sliderDiv;
+    timeSliderDiv = settings.timeSliderDiv;
+    nodesSliderDiv = settings.nodesSliderDiv;
     sizeType = settings.sizeType;
     sliderGranularity = settings.sliderGranularity;
     initGraph = (sliderGranularity === 'day') ? DAY_INIT_GRAPH : MONTH_INIT_GRAPH;
@@ -420,41 +450,42 @@ function prepareGraph(settings) {
     /* Create popularity graph */
     let eventHandler = new EventHandler();
     let graph = new Graph(graphDiv, initGraph, eventHandler, sizeType);
-    // const button = d3.select('#article_button');
 
     /* Insert a slider to select day for which to display nodes */
-    createTimeSlider(sliderDiv, sliderGranularity, graph, eventHandler);
+    createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler);
 
-    /* Modify slider size on window resize */
-    window.addEventListener("resize", () => {
-        d3.selectAll('svg').remove();
-        createTimeSlider(sliderDiv, sliderGranularity, graph, eventHandler);
-    });
+    /* Insert slider for choosing the number of nodes to display */
+    createNodesSlider(nodesSliderDiv, graph, eventHandler)
 
-    // /* Draw the graph */
-    // button.on("click", () => {
-    // NODES_TO_DISPLAY = parseInt(document.getElementById('article_text').value);
-    //  /* Keep the focus on the current node */
-    //  popGraph.draw(popEventHandler.getFocusNode());
-    // });
+    return [graph, eventHandler];
 }
 
 whenDocumentLoaded(() => {
     /* Prepare the popularity graph */
     popularity_settings = {
         graphDiv: 'popularity_graph',
-        sliderDiv: '#popularity_time_slider',
+        timeSliderDiv: '#popularity_time_slider',
+        nodesSliderDiv: '#popularity_nodes_slider',
         sizeType: 'absolute_size',
         sliderGranularity: 'day'
     }
-    prepareGraph(popularity_settings);
+    const [popGraph, popEv] = prepareGraph(popularity_settings);
 
     /* Prepare the news graph */
     news_settings = {
         graphDiv: 'news_graph',
-        sliderDiv: '#news_time_slider',
+        timeSliderDiv: '#news_time_slider',
+        nodesSliderDiv: '#news_nodes_slider',
         sizeType: 'daily_change_size',
         sliderGranularity: 'month'
     }
-    prepareGraph(news_settings);
+    const [newsGraph, newsEv] = prepareGraph(news_settings);
+
+    /* Modify slider size on window resize */
+    window.addEventListener("resize", () => {
+        d3.select('#popularity_time_slider').selectAll('svg').remove();
+        d3.select('#news_time_slider').selectAll('svg').remove();
+        createTimeSlider('#popularity_time_slider', 'day', popGraph, popEv);
+        createTimeSlider('#news_time_slider', 'month', newsGraph, newsEv);
+    });
 });
