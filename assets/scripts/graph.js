@@ -5,6 +5,8 @@ const DAY_INIT_GRAPH = DATA_DIR + 'data01_01.json';
 const MONTH_INIT_GRAPH = DATA_DIR + 'data1.json';
 let NODES_TO_DISPLAY = 5;
 const NODES_LIMIT = 200;
+const NUM_BARS = 10;
+const LABEL_LIMIT = 18;
 
 /* Colors */
 const NODE_COLOR = '#ec5148';
@@ -42,19 +44,118 @@ function whenDocumentLoaded(action) {
     }
 }
 
-/* Arrange point in a circle shape */
-function getCircle(center, radius, numPoints) {
-    const coords = [];
-    const angle_unit = 2 * Math.PI / numPoints;
+/* Create a bar chart associated to the graph */
+function createPopularityBarChart(div, data) {
+    /* Define chart margins */
+    const margin = {top: 30, right: 0, bottom: 10, left: 105};
+    const height = parseInt(d3.select(div).style('height'));
+    const width = parseInt(d3.select(div).style('width'));
+    /* Define x and y scale */
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.visits)])
+        .range([margin.left, width - margin.right]);
+    const y = d3.scaleBand()
+        .domain(data.map(d => d.label))
+        .range([margin.top, height - margin.bottom])
+        .padding(0.1);
 
-    for (let i = 0; i < numPoints; i++) {
-        let coord = {};
-        coord.x = center.x + radius * Math.cos(i * angle_unit);
-        coord.y = center.y + radius * Math.sin(i * angle_unit);
-        coords.push(coord);
-    }
+    /* Draw bars */
+    d3.select(div).append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', 'steelBlue')
+        .append('g')
+        .selectAll('rect')
+        .data(data)
+        .enter().append('rect')
+            .attr('x', x(0))
+            .attr('y', d => y(d.label))
+            .attr('width', d => x(d.visits) - x(0))
+            .attr('height', y.bandwidth());
 
-    return coords;
+    /* Draw axes */
+    const svg = d3.select(div).select('svg');
+    const xAxis = g => g
+        .attr("transform", `translate(0,${margin.top})`)
+        .call(d3.axisTop(x).ticks(width / 80))
+        .call(g => g.select(".domain").remove());
+    const yAxis = g => g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).tickSizeOuter(0));
+
+    svg.append("g")
+    .attr("text-anchor", "end")
+    .style("font", "12px sans-serif")
+    .selectAll("text")
+    .data(data)
+    .enter().append("text")
+        .attr("x", d => x(d.visits) - 4)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        // .text(d => format(d.visits));
+
+    svg.append("g")
+    .call(xAxis);
+
+    svg.append("g")
+    .call(yAxis);
+}
+
+/* Create a bar chart with statistics about an article */
+function createNewsBarChart(div, data) {
+    /* Define chart margins */
+    const margin = {top: 10, right: 0, bottom: 30, left: 20};
+    const height = parseInt(d3.select(div).style('height'));
+    const width = parseInt(d3.select(div).style('width'));
+    /* Define x and y scale */
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.day)])
+        .range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear()
+        .domain(data.map(d => d.visits))
+        .range([margin.top, height - margin.bottom])
+        .padding(0.1);
+
+    /* Draw bars */
+    d3.select(div).append('svg')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', 'steelBlue')
+        .append('g')
+        .selectAll('rect')
+        .data(data)
+        .enter().append('rect')
+            .attr('x', d => x(d.day))
+            .attr('y', y(0))
+            .attr('width', d => x(d.visits) - x(0))
+            .attr('height', y.bandwidth());
+
+    /* Draw axes */
+    const svg = d3.select(div).select('svg');
+    const xAxis = g => g
+        .attr("transform", `translate(0,${margin.top})`)
+        .call(d3.axisTop(x).ticks(width / 80))
+        .call(g => g.select(".domain").remove());
+    const yAxis = g => g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).tickSizeOuter(0));
+
+    svg.append("g")
+    .attr("text-anchor", "end")
+    .style("font", "12px sans-serif")
+    .selectAll("text")
+    .data(data)
+    .enter().append("text")
+        .attr("x", d => x(d.visits) - 4)
+        .attr("y", d => y(d.label) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        // .text(d => format(d.visits));
+
+    svg.append("g")
+    .call(xAxis);
+
+    svg.append("g")
+    .call(yAxis);
 }
 
 class EventHandler {
@@ -196,14 +297,16 @@ class EventHandler {
 }
 
 class Graph {
-    constructor(graphDiv, dataFile, eventHandler, sizeType) {
-        this.dataFile = dataFile;
+    constructor(eventHandler, graphSettings) {
         this.eventHandler = eventHandler;
-        this.sizeType = sizeType
-        this.sigma = new sigma(graphDiv);
+        /* Extract graph settings */
+        this.graphType = graphSettings.graphType;
+        this.dataFile = graphSettings.dataFile;
+        this.sizeType = graphSettings.sizeType;
+        this.sigma = new sigma(graphSettings.graphDiv);
 
-            /* Keep an internal representation of the graph */
-            this.outNei = {};
+        /* Keep an internal representation of the graph */
+        this.outNei = {};
         this.inNei = {};
         this.nodes = {};
         this.generateRepresentation(true);
@@ -239,6 +342,20 @@ class Graph {
                         this.nodes[id].label = nodes[i].label;
                         this.nodes[id].x = nodes[i].x;
                         this.nodes[id].y = nodes[i].y;
+                    }
+
+                    /* Draw bar charts */
+                    if (this.graphType === 'popularity') {
+                        /* Draw article popularity chart */
+                        const popularityData = this.sortedNodes.slice(0, NUM_BARS).map(
+                            ((article) => {
+                                const d = {
+                                'label': this.nodes[article.id].label.slice(0, LABEL_LIMIT),
+                                'visits': article.size
+                                };
+                                return d;
+                            }));
+                        createPopularityBarChart('#article_chart', popularityData);
                     }
                 });
 
@@ -286,6 +403,22 @@ class Graph {
                 this.sortedNodes.sort((node1, node2) => node2.size - node1.size);
 
                 this.draw(node);
+
+                /* Draw bar charts */
+                if (this.graphType === 'popularity') {
+                    /* Erase previous charts */
+                    d3.select('#article_chart').selectAll('svg').remove();
+                    /* Draw new article popularity chart */
+                    const popularityData = this.sortedNodes.slice(0, NUM_BARS).map(
+                        ((article) => {
+                            const d = {
+                            'label': this.nodes[article.id].label.slice(0, LABEL_LIMIT),
+                            'visits': article.size
+                            };
+                            return d;
+                        }));
+                    createPopularityBarChart('#article_chart', popularityData);
+                }
             }
     });
     }
@@ -368,7 +501,7 @@ class Graph {
     }
 }
 
-function createTimeSlider(div, granularity, graph, eventHandler) {
+function createTimeSlider(div, granularity, graph, eventHandler, value) {
     /* Make slider go through all the year's days/months */
     const div_width = parseInt(d3.select(div).style("width"));
     const slider_width = parseInt(div_width * 0.9);
@@ -382,11 +515,15 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
         date = MONTH_TO_ID['January'];
     }
 
-    const slider = d3.sliderHorizontal()
+    let slider = d3.sliderHorizontal()
         .min(d3.min(time_range))
         .max(d3.max(time_range))
         .tickFormat(tick_format)
         .width(slider_width);
+    /* Set slider value */
+    // if (value !== undefined)
+    //     slider = slider.value(value);
+
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
         .attr('height', "100%")
@@ -400,6 +537,17 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
         if (granularity == 'day')
             new_date = d3.timeFormat('%d_%m')(val);
 
+        /* Change the date displayed */
+        const p_id = div.split('_')[0] + '_time_text';
+        if (granularity == 'day') {
+            const day = d3.timeFormat('%d/%m')(val);
+            d3.select(p_id).text('Day: ' + day);
+        } else {
+            val = parseInt(val);
+            const month = MONTHS[val];
+            d3.select(p_id).text('Month: ' + month);
+        }
+
         /* Change the graph only if the date changed */
         if (new_date !== date) {
             date = new_date;
@@ -408,18 +556,25 @@ function createTimeSlider(div, granularity, graph, eventHandler) {
             graph.generateRepresentation(false, eventHandler.getFocusNode());
         }
     });
+
+    return slider;
 }
 
-function createNodesSlider(div, graph, eventHandler) {
+function createNodesSlider(div, graph, eventHandler, value) {
     const div_width = parseInt(d3.select(div).style("width"));
     const slider_width = parseInt(div_width * 0.9);
     const slider_spacing = parseInt((div_width - slider_width) / 2);
 
-    const slider = d3.sliderHorizontal()
+    let slider = d3.sliderHorizontal()
         .min(0)
         .max(NODES_LIMIT)
         .step(5)
+        .tickFormat((ind) => '')
         .width(slider_width);
+    /* Set slider value */
+    // if (value !== undefined)
+    //     slider = slider.value(value);
+
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
         .attr('height', "100%")
@@ -430,62 +585,90 @@ function createNodesSlider(div, graph, eventHandler) {
     /* Change the number of nodes to display */
     slider.on('onchange', (val) => {
         NODES_TO_DISPLAY = parseInt(val);
-        /* Chnage the number displayed */
+        /* Change the number displayed */
         const p_id = div.split('_')[0] + '_nodes_text';
         d3.select(p_id).text('Nodes: ' + val);
         /* Redraw graph */
-        graph.draw();
+        graph.draw(eventHandler.getFocusNode());
     });
+
+    return slider;
 }
 
 function prepareGraph(settings) {
     /* Extract settings */
-    graphDiv = settings.graphDiv;
     timeSliderDiv = settings.timeSliderDiv;
     nodesSliderDiv = settings.nodesSliderDiv;
-    sizeType = settings.sizeType;
     sliderGranularity = settings.sliderGranularity;
     initGraph = (sliderGranularity === 'day') ? DAY_INIT_GRAPH : MONTH_INIT_GRAPH;
 
     /* Create popularity graph */
     let eventHandler = new EventHandler();
-    let graph = new Graph(graphDiv, initGraph, eventHandler, sizeType);
+    const graphSettings = {
+        graphType: settings.graphType,
+        graphDiv: settings.graphDiv,
+        dataFile: initGraph,
+        sizeType: settings.sizeType
+    }
+    let graph = new Graph(eventHandler, graphSettings);
 
     /* Insert a slider to select day for which to display nodes */
-    createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler);
+    let timeSlider = createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler);
 
     /* Insert slider for choosing the number of nodes to display */
-    createNodesSlider(nodesSliderDiv, graph, eventHandler)
-
-    return [graph, eventHandler];
-}
-
-whenDocumentLoaded(() => {
-    /* Prepare the popularity graph */
-    popularity_settings = {
-        graphDiv: 'popularity_graph',
-        timeSliderDiv: '#popularity_time_slider',
-        nodesSliderDiv: '#popularity_nodes_slider',
-        sizeType: 'absolute_size',
-        sliderGranularity: 'day'
-    }
-    const [popGraph, popEv] = prepareGraph(popularity_settings);
-
-    /* Prepare the news graph */
-    news_settings = {
-        graphDiv: 'news_graph',
-        timeSliderDiv: '#news_time_slider',
-        nodesSliderDiv: '#news_nodes_slider',
-        sizeType: 'daily_change_size',
-        sliderGranularity: 'month'
-    }
-    const [newsGraph, newsEv] = prepareGraph(news_settings);
+    let nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler);
 
     /* Modify slider size on window resize */
     window.addEventListener("resize", () => {
-        d3.select('#popularity_time_slider').selectAll('svg').remove();
-        d3.select('#news_time_slider').selectAll('svg').remove();
-        createTimeSlider('#popularity_time_slider', 'day', popGraph, popEv);
-        createTimeSlider('#news_time_slider', 'month', newsGraph, newsEv);
+        /* Erase old sliders */
+        d3.select(timeSliderDiv).selectAll('svg').remove();
+        d3.select(nodesSliderDiv).selectAll('svg').remove();
+        /* Maintain sliders on the same values */
+        const timeValue = timeSlider.value();
+        const nodeValue = nodeSlider.value();
+        timeSlider = createTimeSlider(timeSliderDiv, 'day', graph, eventHandler, timeValue);
+        nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler, nodeValue);
+
+        if (settings.graphType === 'popularity') {
+            /* Also resize bar charts */
+            /* Erase previous charts */
+            d3.select('#article_chart').selectAll('svg').remove();
+            /* Draw new article popularity chart */
+            const popularityData = graph.sortedNodes.slice(0, NUM_BARS).map(
+                ((article) => {
+                    const d = {
+                    'label': graph.nodes[article.id].label.slice(0, LABEL_LIMIT),
+                    'visits': article.size
+                    };
+                    return d;
+                }));
+            createBarChart('#article_chart', popularityData);
+        }
     });
+}
+
+whenDocumentLoaded(() => {
+    if (document.getElementById('popularity_graph') !== null) {
+        /* Prepare the popularity graph */
+        const popularity_settings = {
+            graphType: 'popularity',
+            graphDiv: 'popularity_graph',
+            timeSliderDiv: '#popularity_time_slider',
+            nodesSliderDiv: '#popularity_nodes_slider',
+            sizeType: 'absolute_size',
+            sliderGranularity: 'day'
+        }
+        prepareGraph(popularity_settings);
+    } else if (document.getElementById('news_graph') !== null) {
+        /* Prepare the news graph */
+        const news_settings = {
+            graphType: 'news',
+            graphDiv: 'news_graph',
+            timeSliderDiv: '#news_time_slider',
+            nodesSliderDiv: '#news_nodes_slider',
+            sizeType: 'daily_change_size',
+            sliderGranularity: 'month'
+        }
+        prepareGraph(news_settings);
+    }
 });

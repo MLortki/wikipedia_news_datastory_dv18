@@ -1,13 +1,30 @@
 <div class="container" id="news_viz">
   <div class="row node_selector">
-    <div class="col-sm-2">
+    <div class="col-sm-1" id="play_button">
+      <button type="button" class="btn btn-light">Play</button>
+    </div>
+    <div class="col-sm-2" id="nodes_text">
       <p id="news_nodes_text">Nodes: 5</p>
     </div>
-    <div id="news_nodes_slider" class="col-sm-10"></div>
+    <div id="news_nodes_slider" class="col-sm-9"></div>
   </div>
+
   <div class="row">
     <div id="news_graph" class="col-sm-6 graph"></div>
     <div id="map_container" class="col-sm-6"></div>
   </div>
-  <div id="news_time_slider" class="slider"></div>
+
+  <div class="row slider">
+    <div class="col-sm-2">
+      <p id="news_time_text">Month: January</p>
+    </div>
+    <div id="news_time_slider" class="col-sm-10"></div>
+  </div>
+
+  <div id="news_info" class="row">
+    <div id="news_stats" class="col-sm-6">
+    </div>
+    <div id="news_description" class="col-sm-6">
+    </div>
+  </div>
 </div>

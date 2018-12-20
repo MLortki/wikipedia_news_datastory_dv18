@@ -5,7 +5,7 @@ layout: default
 # Dataset description
 
 # Article popularity
-{% include popularity_viz.html %}
+[Popularity link](./popularity.html)
 
 
 <br>
@@ -13,4 +13,4 @@ layout: default
 
 
 # Effect of news on article popularity
-{% include news_viz.html %}
+[News link](./news.html)
