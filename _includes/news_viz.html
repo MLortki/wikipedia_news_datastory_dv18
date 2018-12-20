@@ -1,15 +1,13 @@
 <div class="container" id="news_viz">
-  <div class="row">
-    <div id="news_graph" class="col-sm-8"></div>
-    <div id="news_data" class="col-sm-4">
-      <div id="stats">
-        <font color="white">Stats</font>
-      </div>
-      <div id="news">
-        <font color="white">News</font>
-      </div>
+  <div class="row node_selector">
+    <div class="col-sm-2">
+      <p id="news_nodes_text">Nodes: 5</p>
     </div>
-  </div> 
-  <div id="map_container"></div>
-  <div id="news_time_slider"></div>
+    <div id="news_nodes_slider" class="col-sm-10"></div>
+  </div>
+  <div class="row">
+    <div id="news_graph" class="col-sm-6 graph"></div>
+    <div id="map_container" class="col-sm-6"></div>
+  </div>
+  <div id="news_time_slider" class="slider"></div>
 </div>
