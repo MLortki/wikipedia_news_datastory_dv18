@@ -91,22 +91,38 @@ p {
 }
 
 div.tooltip {
+  // position: absolute;
+  // text-align: left;
+  // width: auto;
+  // height: auto;
+  // font-size: 12px;
+  // padding: 30px;
+  // background: white;
+  // border: 0;
+  // border-radius: 5px;
+  // pointer-events: none;
+	color: #222;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0px 0px 2px 0px #a6a6a6;
+  padding: .2em;
+  text-shadow: #f5f5f5 0 1px 0;
+  opacity: 0.9;
   position: absolute;
-  text-align: left;
-  width: auto;
-  height: auto;
-  font-size: 12px;
-  padding: 10px;
-  background: white;
-  border: 0;
-  border-radius: 5px;
-  pointer-events: none;
+	font-size: 9px;
+}
+
+.toolTipHeader {
+	font-size: 10px;
 }
 
 .toolTipText {
   color: black;
   margin-bottom: 3px;
 }
+
+// var offsetL = document.getElementById('map_container').offsetLeft + 10;
+// var offsetT = document.getElementById('map_container').offsetTop + 10;
 
 #container {
   width: 90%;
@@ -135,6 +151,7 @@ div.tooltip {
 #svg_map {
 	width: 100%;
 	height: 100%;
+	overflow: visible;
 }
 
 #play_button {
