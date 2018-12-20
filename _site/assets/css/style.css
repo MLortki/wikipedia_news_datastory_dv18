@@ -437,39 +437,43 @@ body {
   align-content: center; }
 
 header h1 {
+  text-align: center;
   color: var(--title_color); }
 
 h1 {
   color: var(--header_color); }
 
+g {
+  height: 100%; }
+
+p {
+  margin: 0; }
+
+.col-sm-2 {
+  padding: 0; }
+
+.col-sm-2 p {
+  text-align: center; }
+
 .inner {
-  width: 80%; }
+  width: 70%; }
 
 .row {
   width: 100%;
-  height: 90%;
+  height: 85%;
   margin-right: 0;
-  margin-left: 0; }
+  margin-left: 0;
+  padding: 0; }
 
 .node_selector {
   width: 100%;
   height: 5%;
-  margin-top: 2%; }
+  margin-bottom: 2%; }
 
 .container {
   max-width: 100%;
   padding-right: 0;
   padding-left: 0; }
-
-#container {
-  background: var(--back_color); }
-
-#popularity_viz {
-  height: 500px; }
-
-#news_viz {
-  height: 500px;
-  display: inline-block; }
 
 .graph {
   max-width: 100%;
@@ -480,19 +484,14 @@ h1 {
 .slider {
   max-width: 90%;
   height: 10%;
-  margin: auto; }
+  margin: auto;
+  margin-top: 1%; }
 
-#popularity_time_slider {
-  max-width: 90%;
-  height: 10%;
-  margin: auto; }
+.chart_container {
+  height: 50%; }
 
-#map_container {
-  padding: 0; }
-
-#svg_map {
-  width: 100%;
-  height: 100%; }
+.chart {
+  height: 95%; }
 
 div.tooltip {
   position: absolute;
@@ -509,3 +508,35 @@ div.tooltip {
 .toolTipText {
   color: black;
   margin-bottom: 3px; }
+
+#container {
+  width: 90%;
+  background: var(--back_color); }
+
+#main_content {
+  width: 100%;
+  height: 95%; }
+
+#popularity_viz {
+  height: 100%;
+  display: inline-block; }
+
+#news_viz {
+  height: 50%;
+  display: inline-block; }
+
+#map_container {
+  padding: 0; }
+
+#svg_map {
+  width: 100%;
+  height: 100%; }
+
+#play_button {
+  height: 100%; }
+
+#nodes_text {
+  height: 100%; }
+
+#news_info {
+  height: 30%; }
