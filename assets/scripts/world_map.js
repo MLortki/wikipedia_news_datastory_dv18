@@ -55,7 +55,7 @@ var tooltip_map = d3.select("body")
 d3.json("assets/data/world.geo.json")
   .then(function(map_data) {
 
-    // console.log(map_data)
+    console.log(map_data)
 
     g.selectAll("path")
       .data(map_data.features)
