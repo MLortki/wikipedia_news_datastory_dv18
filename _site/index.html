@@ -16,7 +16,7 @@
 <meta property="og:url" content="http://localhost:4000/" />
 <meta property="og:site_name" content="News’ effect on Wikipedia articles popularity" />
 <script type="application/ld+json">
-{"@type":"WebSite","headline":"News’ effect on Wikipedia articles popularity","url":"http://localhost:4000/","name":"News’ effect on Wikipedia articles popularity","@context":"http://schema.org"}</script>
+{"@type":"WebSite","url":"http://localhost:4000/","name":"News’ effect on Wikipedia articles popularity","headline":"News’ effect on Wikipedia articles popularity","@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   </head>
@@ -32,7 +32,7 @@
         <section id="main_content">
           <h1 id="dataset-description">Dataset description</h1>
 <p>We used a Wikipedia dataset originally retrieved from the SNAP repository. This is a website containing human navigation paths on Wikipedia that were collected through human-computer interaction within a game called Wikispeedia. In the game, players received pairs of Wikipedia articles and had to reach one article from the other through Wikipedia links between them.  The dataset provided consists of 4604 different articles.  For the purpose of our project, we cleaned and extracted relevant information from the above-mentioned website, consisting of names of articles, their categories and linkage information in the form of an adjacency matrix. <br />
-Since the goal of our project was to identify popularity, we looked for spikes in the number of visits and linked those occurrences with the corresponding events in the real world for visualization, we could have used an arbitrary sample from the millions of Wikipedia articles as long as we could identify unusual activities caused by external factors. Therefore, we deemed the obtained articles that we were kindly provided by Mr. Raymond as sufficient.
+Since the goal of our project was to identify popularity, we looked for spikes in the number of visits and linked those occurrences with the corresponding events in the real world for visualization, we could have used an arbitrary sample from the millions of Wikipedia articles as long as we could identify unusual activities caused by external factors. Therefore, we deemed the obtained articles that we were kindly provided by Mr. Ricaud as sufficient.
 Additionally, we queried the number of visits for all days in 2017 for all articles in our dataset from Wikipedia API. This information served as the basis for popularity and spike detection. <br />
 Furthermore, the dataset linking spikes of specific articles with news was created manually by us for the project. We built a dataset of around 200 entries specifying article name, event type, date and source (if applicable) of the event.</p>
 
