@@ -424,7 +424,7 @@ footer a:hover {
 /* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
 :root {
   --back_color: rgb(40, 40, 40);
-  --title_color: rgb(117, 117, 117);
+  --title_color: rgb(243, 117, 117)
   --header_color: rgb(200, 200, 200);
   --text_color: rgb(214, 214, 214); }
 
