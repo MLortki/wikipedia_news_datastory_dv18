@@ -1,13 +1,15 @@
 # dv18
-Data Visualization class, EPFL 2018
+# Data Visualization class, EPFL 2018
 
 Github page:
 https://mlortki.github.io/wikipedia_news_datastory_dv18/
 
 
 Page was build using jekyll.
-Files/folders modified/added by us:
 
+## Libraries used
+
+## Files/folders modified/added by us
 Datasets: assets/data folder
 
           -   article_subject.csv: articles with their corresponding top level categories
