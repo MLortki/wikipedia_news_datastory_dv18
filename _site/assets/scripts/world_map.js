@@ -10,6 +10,9 @@ var width = screen.width * .8,
   centered;
 
 
+var currentArticle = "all";
+
+
 //for tooltip
 var offsetL = document.getElementById('map_container').offsetLeft + 10;
 var offsetT = document.getElementById('map_container').offsetTop + 10;
@@ -106,50 +109,18 @@ d3.csv("assets/data/wiki_news.csv").then(function(news) {
       // .on("click", postalAreaClicked)
 
 
-      colorMap(1);
+      colorMap();
 
     });
 
 })
 
 
+function getColor(news, d, article) {
 
-// function getColor(news, d) {
-//
-//   colour = "#F2D165";
-//   news.forEach(function(row) {
-//     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
-//       // console.log("found for " + row['Country'] + " in " + d.properties.admin);
-//       colour = "#FFF169";
-//       colour = '#ec5148';
-//     }
-//   });
-//
-//
-//   return colour;
-//
-// }
-//
-// function colorMap(date) {
-//   console.log("in colorMap");
-//
-//   d3.csv("assets/data/wiki_news.csv")
-//     .then(function(news) {
-//       // console.log(news);
-//
-//       d3.selectAll('.country').transition() //select all the countries and prepare for a transition to new values
-//         .duration(500) // give it a smooth time period for the transition
-//         .style('fill', function(d) {
-//           // console.log(d);
-//           return getColor(news, d);
-//
-//         });
-//     });
-// }
+  var colour = "#F2D165";
+  var date = MONTH_TO_ID[d3.select("#news_time_text").text().split(" ")[1]];
 
-function getColor(news, d, date) {
-
-  colour = "#F2D165";
   news.forEach(function(row) {
 
     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
@@ -157,7 +128,12 @@ function getColor(news, d, date) {
       var newsDate = row['Date'].split('/')[1];
 
       if (newsDate == date) {
-        colour = '#ec5148';
+        console.log(row['Article Name'] + " " + article);
+        console.log(row['Article Name'].trim() === article)
+        if (article === 'all' || article === row['Article Name'].trim()) {
+          console.log("finally");
+          colour = '#ec5148';
+        }
       }
     }
   });
@@ -167,8 +143,13 @@ function getColor(news, d, date) {
 
 }
 
-function colorMap(date) {
-  console.log("in colorMap");
+function colorMap(article='all') {
+
+  currentArticle = article;
+
+  if (article != 'all') {
+    console.log(article);
+  }
 
   d3.csv("assets/data/wiki_news.csv")
     .then(function(news) {
@@ -178,7 +159,7 @@ function colorMap(date) {
         .duration(500) // give it a smooth time period for the transition
         .style('fill', function(d) {
           // console.log(d);
-          return getColor(news, d, date);
+          return getColor(news, d, article);
 
         });
     });
@@ -194,13 +175,17 @@ function getNewsOfTheCountry(news, d) {
     console.log(date);
     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
       if (row['Date'].split('/')[1] == date) {
-        newsStr = newsStr + "<p>" + row['Date'] + ": " +
-          row['Article Name'] + ", " + row['Event Type'] + "</p>";
+        if (currentArticle === 'all' || currentArticle === row['Article Name'].trim()) {
+          newsStr = newsStr + "<p>" + row['Date'] + ": " +
+            row['Article Name'] + ", " + row['Event Type'] + "</p>";
+        }
       }
     }
   });
+
   return newsStr;
 }
+
 
 
 
