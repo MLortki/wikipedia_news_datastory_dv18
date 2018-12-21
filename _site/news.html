@@ -28,7 +28,23 @@
       </header>
       <hr>
       <section id="main_content">
-        <div class="container" id="news_viz">
+        <p>We’re glad you are still interested, especially as this is the main part of the project. <br />
+The graph displays for each month of the year 2017 the articles that had the greatest spikes in the number of visits. The greater the spike, the larger the node. The map displays the locations on the globe linked to the top news for that month. <br />
+How to interact with the visualization:</p>
+<ul>
+  <li>To change the number of nodes to display, you just have to drag the top slider. The number of nodes displayed will be shown to the left of the slider.</li>
+  <li>To change the month for which you display data, you will have to drag the bottom slider. The date will be displayed to the left of the slider.</li>
+  <li>Hovering over the nodes will highlight their outgoing edges and display the article’s name.</li>
+  <li>To better explore parts of the graph, you can zoom on the region of interest.</li>
+  <li>If you click a node, its color will change to green and its top neighbours will be displayed. Apart from this, statistics about the number of visits for that node for the current month will be displayed on the bottom-left corner of the screen. In addition to that, data about the news that caused the spike for that article will be displayed in the bottom-right corner of the screen. The number of neighbours to display can again be changed using the top slider. Also, after selecting a node, you can then select one of its neighbours and you will change the focus on that neighbour.</li>
+  <li>To drop the focus on a green node, just click it and you will be taken to the previous context.</li>
+  <li>Hovering over the map, a pop-up window will appear for the selected country displaying, if the country is highlighted, the news for that month.</li>
+  <li>To start an animation that takes you through the news evolution in the year 2017, click the play button. You can pause the animation by again clicking the button.</li>
+</ul>
+
+<p><br /></p>
+
+<div class="container" id="news_viz">
   <div class="row node_selector">
     <div class="col-sm-1" id="play_button">
       <button id="play" type="button" class="btn btn-light">Play</button>

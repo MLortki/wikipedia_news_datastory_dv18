@@ -525,7 +525,7 @@ div.tooltip {
   display: inline-block; }
 
 #news_viz {
-  height: 80%;
+  height: 60%;
   display: inline-block; }
 
 #map_container {
@@ -543,10 +543,13 @@ div.tooltip {
   height: 100%; }
 
 #news_info {
-  height: 35%; }
+  height: 30%; }
 
 #news_stats {
   padding: 0; }
 
 #popularity_container {
-  height: 70%; }
+  height: 50%; }
+
+#news_container {
+  height: 50%; }
