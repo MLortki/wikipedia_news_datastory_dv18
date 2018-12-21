@@ -1,6 +1,8 @@
 # dv18
-Data Story for Data Visualization class, EPFL 2018
+Data Visualization class, EPFL 2018
 
+Github page:
+https://mlortki.github.io/wikipedia_news_datastory_dv18/
 
 
 Page was build using jekyll.
