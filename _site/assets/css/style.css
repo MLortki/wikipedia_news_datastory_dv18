@@ -434,7 +434,8 @@ body {
   display: flex;
   flex-flow: row nowrap;
   justify-content: center;
-  align-content: center; }
+  align-content: center;
+  font-family: "Courier New"; }
 
 header h1 {
   text-align: center;
@@ -456,18 +457,18 @@ p {
   text-align: center; }
 
 .inner {
-  width: 70%; }
+  width: 60%; }
 
 .row {
   width: 100%;
-  height: 85%;
+  height: 45%;
   margin-right: 0;
   margin-left: 0;
   padding: 0; }
 
 .node_selector {
   width: 100%;
-  height: 5%;
+  height: 3%;
   margin-bottom: 2%; }
 
 .container {
@@ -483,7 +484,7 @@ p {
 
 .slider {
   max-width: 90%;
-  height: 10%;
+  height: 9%;
   margin: auto;
   margin-top: 1%; }
 
@@ -524,7 +525,7 @@ div.tooltip {
   display: inline-block; }
 
 #news_viz {
-  height: 50%;
+  height: 80%;
   display: inline-block; }
 
 #map_container {
@@ -542,4 +543,10 @@ div.tooltip {
   height: 100%; }
 
 #news_info {
-  height: 30%; }
+  height: 35%; }
+
+#news_stats {
+  padding: 0; }
+
+#popularity_container {
+  height: 70%; }
