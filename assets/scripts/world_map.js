@@ -1,137 +1,131 @@
-// class for world map generation
-// class WorldMap {
-//
-//
-//   constructor() {
+/*Script to display/manipulate/animate map*/
 
 
+/*define width and heigh for projection*/
 var width = screen.width * .8,
   height = screen.height * .65,
   centered;
 
-
+/*label of article if one selected in networks, otherwise all*/
 var currentArticle = "all";
 
-
-//for tooltip
+/*offsets for correct positioning of tooltip*/
 var offsetL = document.getElementById('map_container').offsetLeft + 10;
 var offsetT = document.getElementById('map_container').offsetTop + 10;
 
-
+/*projection for map*/
 const projection = d3.geoEquirectangular()
   .scale(100)
   .translate([width / 6, height / 3]);
 
-
+/*creating geo path using projection*/
 var path = d3.geoPath()
   .projection(projection);
 
-
-
+/*appending svg to display map*/
 var svg_map = d3.select("#map_container").append("svg")
   .attr("width", width)
   .attr("height", height)
   .attr("id", "svg_map")
-  .on("wheel", function() {
-    //zoomend needs mouse coords
-    initX = d3.mouse(this)[0];
-  })
-// .call(zoom);
+
 
 var g = svg_map
   .append("g");
 
-// create tooltip for points
+/*tooltip_map object creation that will appear on mouse hover*/
 var tooltip_map = d3.select("body")
   .append("div")
   .attr("class", "tooltip")
   .style("opacity", 0);
 
 
-d3.csv("assets/data/wiki_news.csv").then(function(news) {
-  d3.json("assets/data/world.geo.json")
-    .then(function(map_data) {
+/* reading json file containing world map in geojson format*/
+d3.json("assets/data/world.geo.json")
+  .then(function(map_data) {
 
-      console.log(map_data);
+    /*linking map with world geojson, entering data*/
+    g.selectAll("path")
+      .data(map_data.features)
+      .enter()
+      .append("path")
+      .attr("class", "country") /*class for styling and accessing*/
+      .attr("d", path)
+      .style("stroke", "white")
+      .style('fill', function(d) {
+        return "#F2D165";
+      })
+      .on("mouseover", function() {
+        d3.select(this).transition()
+          .duration("100")
+          .style("fill-opacity", ".8");
 
-      g.selectAll("path")
-        .data(map_data.features)
-        .enter()
-        .append("path")
-        .attr("class", "country") // give them a class for styling and access later
-        .attr("d", path)
-        .style("stroke", "white")
-        .style('fill', function(d) {
-          return "#F2D165";
-        })
-        .on("mouseover", function() {
-          d3.select(this).transition()
-            .duration("100")
-            .style("fill-opacity", ".8");
-          // .style("fill", "rgb(214, 195, 135)");
+        /*Show tooltip_map*/
+        tooltip_map.transition()
+          .duration(200)
+          .style("opacity", .9);
 
-          // Show tooltip_map
-          tooltip_map.transition()
-            .duration(200)
-            .style("opacity", .9);
+      })
+      .on("mousemove", function(d) {
+        /*Place the tooltip_map*/
+        tooltip_map.style("left", (d3.mouse(this)[0]) + offsetL + "px")
+          .style("top", d3.event.pageY + "px");
 
-        })
-        .on("mousemove", function(d) {
-          // Place the tooltip_map
-          tooltip_map.style("left", (d3.mouse(this)[0]) + offsetL + "px")
-            .style("top", d3.event.pageY + "px");
+        /*display country name as the header of tooltip content*/
+        var toolTipHtml = "<h3 id='toolTipHeader'>Country: " + d.properties.admin + "</h3>";
 
-          var toolTipHtml = "<h3 id='toolTipHeader'>Country: " + d.properties.admin + "</h3>";
+        /*in case country contains news (hence the color) for given circumstences, display news*/
+        if (d3.select(this).style('fill') == "rgb(236, 81, 72)") {
+          toolTipHtml = toolTipHtml + getNewsOfTheCountry(news, d);
+        } else {
+          /*otherwise display information regarding the country*/
+          toolTipHtml += "<p class='toolTipText'>Continent: " + d.properties.continent + "</p>" +
+            "<p class='toolTipText'>Economy: " + d.properties.economy + "</p>" +
+            "<p class='toolTipText'>Formal: " + d.properties.formal_en + "</p>" +
+            "<p class='toolTipText'>Region: " + d.properties.region_wb + "</p>";
+        }
 
-          if (d3.select(this).style('fill') == "rgb(236, 81, 72)") {
-            toolTipHtml = toolTipHtml + getNewsOfTheCountry(news, d);
-          } else {
-            //display tooltip text
-            toolTipHtml += "<p class='toolTipText'>Continent: " + d.properties.continent + "</p>" +
-              "<p class='toolTipText'>Economy: " + d.properties.economy + "</p>" +
-              "<p class='toolTipText'>Formal: " + d.properties.formal_en + "</p>" +
-              "<p class='toolTipText'>Region: " + d.properties.region_wb + "</p>";
-          }
+        tooltip_map.html(toolTipHtml);
 
-          tooltip_map.html(toolTipHtml);
+      })
+      .on("mouseout", function() {
+        tooltip_map.transition()
+          .duration(200)
+          .style("opacity", 0);
+        d3.select(this)
+          .transition()
+          .duration("100")
+          .style("fill-opacity", "1")
+      })
 
-        })
-        .on("mouseout", function() {
-          tooltip_map.transition()
-            .duration(200)
-            .style("opacity", 0);
-          d3.select(this)
-            .transition()
-            .duration("100")
-            // .style("fill", "#F2D165")
-            .style("fill-opacity", "1")
-        })
-      // .on("click", postalAreaClicked)
+    /* color countries with news*/
+    colorMap();
 
-
-      colorMap();
-
-    });
-
-})
+  });
 
 
+
+/*returns color of the country corresponding to the data d, given selected article in network
+  (article equals 'all' otherwise) and news data set*/
 function getColor(news, d, article) {
 
+  /*default color of country without news*/
   var colour = "#F2D165";
+  /*month that is selected on slider and displayed*/
   var date = MONTH_TO_ID[d3.select("#news_time_text").text().split(" ")[1]];
 
   news.forEach(function(row) {
 
+    /*if news concerns the country corresponding to d data*/
     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
-      // console.log("found for " + row['Country'] + " in " + d.properties.admin);
+
+      /*retrieve month from exact date of the news*/
       var newsDate = row['Date'].split('/')[1];
 
+      /*if slider month and news month are the same*/
       if (newsDate == date) {
-        console.log(row['Article Name'] + " " + article);
-        console.log(row['Article Name'].trim() === article)
+        /*if specific article is not selected or selected article is linked with this news*/
         if (article === 'all' || article === row['Article Name'].trim()) {
-          console.log("finally");
+          /*colour for countries that have news*/
           colour = '#ec5148';
         }
       }
@@ -143,39 +137,41 @@ function getColor(news, d, article) {
 
 }
 
-function colorMap(article='all') {
+/*colors the map, according to the current state. if specific article was selected, it takes
+it as an argument. otherwise/if disselected 'all' is expected value for article*/
+function colorMap(article = 'all') {
 
+  /*update selected article*/
   currentArticle = article;
 
-  if (article != 'all') {
-    console.log(article);
-  }
-
+  /*read news daraset (contains links between article and news)*/
   d3.csv("assets/data/wiki_news.csv")
     .then(function(news) {
-      // console.log(news);
 
-      d3.selectAll('.country').transition() //select all the countries and prepare for a transition to new values
-        .duration(500) // give it a smooth time period for the transition
+      d3.selectAll('.country').transition() //select all the countries and prepare for a transition
+        .duration(500) // smooth time period fro transition
         .style('fill', function(d) {
-          // console.log(d);
+          /*retrieve colot for each country*/
           return getColor(news, d, article);
-
         });
     });
 }
 
 
-
+/*returns content of tooltip, in case country has corresponding news*/
 function getNewsOfTheCountry(news, d) {
   var newsStr = "";
   news.forEach(function(row) {
-
+    /*retrieve date seleced through slider and displayed on the screen*/
     var date = MONTH_TO_ID[d3.select("#news_time_text").text().split(" ")[1]];
-    console.log(date);
+
+    /*if given news (row)  corresponds to the country of d data*/
     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
+      /*if month of the selected date corresponds to the one of the news(row)*/
       if (row['Date'].split('/')[1] == date) {
+        /*if specific article is not selected or selected article is linked with this news*/
         if (currentArticle === 'all' || currentArticle === row['Article Name'].trim()) {
+          /*display article name and event type/summary*/
           newsStr = newsStr + "<p>" + row['Date'] + ": " +
             row['Article Name'] + ", " + row['Event Type'] + "</p>";
         }
@@ -185,27 +181,3 @@ function getNewsOfTheCountry(news, d) {
 
   return newsStr;
 }
-
-
-
-
-
-
-//   }
-//
-// }
-//
-//
-// function whenDocumentLoaded(action) {
-//   if (document.readyState === "loading") {
-//     document.addEventListener("DOMContentLoaded", action);
-//   } else {
-//     // `DOMContentLoaded` already fired
-//     action();
-//   }
-// }
-//
-// whenDocumentLoaded(() => {
-//   plot_object = new WorldMap();
-//   // plot object is global, you can inspect it in the dev-console
-// });
