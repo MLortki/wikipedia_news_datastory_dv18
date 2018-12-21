@@ -628,6 +628,26 @@ function createTimeSlider(div, granularity, graph, eventHandler, value) {
             graph.dataFile = DATA_DIR + `data${date}.json`;
             /* Keep focus on the current node */
             graph.generateRepresentation(false, eventHandler.getFocusNode());
+
+            /* Redraw news stats */
+            if (graph.graphType === 'news') {
+                /* Erase old statistics */
+                d3.select('#news_stats').selectAll('svg').remove();
+                /* Add new svg */
+                const focusNodeId = eventHandler.getFocusNode();
+                if (focusNodeId !== undefined) {
+                    const month = MONTH_TO_ID[d3.select('#news_time_text').text().split(' ')[1]];
+                    const dataFile = DATA_DIR + `data${month}.json`;
+                    /* Read data and create bar chart */
+                    d3.json(dataFile).then((nodes) => {
+                        for (const i in nodes)
+                            if (nodes[i].id === focusNodeId) {
+                                createNewsBarChart('#news_stats', nodes[i].all_visits);
+                                break;
+                            }
+                    });
+                }
+            }
         }
     });
 
