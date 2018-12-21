@@ -109,7 +109,8 @@ function createNewsBarChart(div, data) {
     /* Define x and y scale */
     const x = d3.scaleBand()
         .domain(d3.range(1, data.length + 1))
-        .range([margin.left, width - margin.right]);
+        .range([margin.left, width - margin.right])
+        .padding(0.1);
     const y = d3.scaleLinear()
         .domain([0, d3.max(data)])
         .range([height - margin.bottom, margin.top]);
@@ -123,7 +124,7 @@ function createNewsBarChart(div, data) {
         .selectAll('rect')
         .data(data)
         .enter().append('rect')
-            .attr('x', (d, i) => x(i + 1) + x.bandwidth() / 2)
+            .attr('x', (d, i) => x(i + 1))
             .attr('y', d =>  y(d))
             .attr('width', x.bandwidth())
             .attr('height', d => height - margin.bottom - y(d));
@@ -132,7 +133,7 @@ function createNewsBarChart(div, data) {
     const svg = d3.select(div).select('svg');
     const xAxis = g => g
         .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisTop(x).ticks(width / 80))
+        .call(d3.axisBottom(x).ticks(width / 80))
         .call(g => g.select(".domain").remove());
     const yAxis = g => g
         .attr("transform", `translate(${margin.left},0)`)
@@ -595,8 +596,8 @@ function createTimeSlider(div, granularity, graph, eventHandler, value) {
         .tickFormat(tick_format)
         .width(slider_width);
     /* Set slider value */
-    // if (value !== undefined)
-    //     slider = slider.value(value);
+    if (value !== undefined)
+        slider = slider.value(value);
 
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
@@ -666,8 +667,8 @@ function createNodesSlider(div, graph, eventHandler, value) {
         .tickFormat((ind) => '')
         .width(slider_width);
     /* Set slider value */
-    // if (value !== undefined)
-    //     slider = slider.value(value);
+    if (value !== undefined)
+        slider = slider.value(value);
 
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
@@ -710,7 +711,7 @@ function prepareGraph(settings) {
     let timeSlider = createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler);
 
     /* Insert slider for choosing the number of nodes to display */
-    let nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler);
+    let nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler, NODES_TO_DISPLAY);
 
     /* Modify slider size on window resize */
     window.addEventListener("resize", () => {
