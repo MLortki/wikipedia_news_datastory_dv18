@@ -6,7 +6,8 @@ Data Story for Data Visualization class, EPFL 2018
 Page was build using jekyll.
 Files/folders modified/added by us:
 
-Datasets: assets/data folder
+Datasets: assets/data folder:
+
           -   article_subject.csv: articles with their corresponding top level category
           -   categories.json:          
           -   data*\_*.json:            
