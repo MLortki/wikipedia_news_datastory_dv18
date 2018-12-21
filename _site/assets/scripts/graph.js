@@ -832,42 +832,6 @@ function prepareGraph(settings) {
   });
 }
 
-function getColor(news, d, date) {
-
-  colour = "#F2D165";
-  news.forEach(function(row) {
-
-    if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
-      // console.log("found for " + row['Country'] + " in " + d.properties.admin);
-      var newsDate = row['Date'].split('/')[1];
-      
-      if (newsDate == date) {
-        colour = '#ec5148';
-      }
-    }
-  });
-
-
-  return colour;
-
-}
-
-function colorMap(date) {
-  console.log("in colorMap");
-
-  d3.csv("assets/data/wiki_news.csv")
-    .then(function(news) {
-      // console.log(news);
-
-      d3.selectAll('.country').transition() //select all the countries and prepare for a transition to new values
-        .duration(500) // give it a smooth time period for the transition
-        .style('fill', function(d) {
-          // console.log(d);
-          return getColor(news, d, date);
-
-        });
-    });
-}
 
 whenDocumentLoaded(() => {
   if (document.getElementById('popularity_graph') !== null) {
@@ -894,7 +858,3 @@ whenDocumentLoaded(() => {
     prepareGraph(news_settings);
   }
 });
-
-
-
-// map methods

@@ -189,9 +189,14 @@ function colorMap(date) {
 function getNewsOfTheCountry(news, d) {
   var newsStr = "";
   news.forEach(function(row) {
+
+    var date = MONTH_TO_ID[d3.select("#news_time_text").text().split(" ")[1]];
+    console.log(date);
     if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
-      newsStr = newsStr + "<p>" + row['Date'] + ": " +
-        row['Article Name'] + ", " + row['Event Type'] + "</p>";
+      if (row['Date'].split('/')[1] == date) {
+        newsStr = newsStr + "<p>" + row['Date'] + ": " +
+          row['Article Name'] + ", " + row['Event Type'] + "</p>";
+      }
     }
   });
   return newsStr;
