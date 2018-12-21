@@ -1,4 +1,3 @@
-# dv18
 # Data Visualization class, EPFL 2018
 
 Github page:
