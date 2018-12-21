@@ -6,7 +6,7 @@ Data Story for Data Visualization class, EPFL 2018
 Page was build using jekyll.
 Files/folders modified/added by us:
 
-Datasets: assets/data folder:
+Datasets: assets/data folder
 
           -   article_subject.csv: articles with their corresponding top level category
           -   categories.json:          
@@ -17,10 +17,13 @@ Datasets: assets/data folder:
           -   world.geo.json:           
           
 Scripts:  assets/script folder
-          -    graph.js:                - for network visualization
-          -    world_map.js:            - for map visualization
+
+          -    graph.js: for network visualization
+          -    world_map.js: for map visualization
+          
 HTML:     \_includes folder
-          -   print.css:                - 
-          -   style.scss:               -
+
+          -   print.css:                
+          -   style.scss:               
 
 Styles:   assets/css folder
