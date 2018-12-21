@@ -495,7 +495,7 @@ class Graph {
                     createPopularityBarChart('#categories_chart', catData);
                 }
             }
-    });
+        });
     }
 
     draw(node) {
@@ -590,14 +590,11 @@ function createTimeSlider(div, granularity, graph, eventHandler, value) {
         date = MONTH_TO_ID['January'];
     }
 
-    let slider = d3.slider()
+    let slider = d3.sliderHorizontal()
         .min(d3.min(time_range))
         .max(d3.max(time_range))
         .tickFormat(tick_format)
         .width(slider_width);
-    /* Set slider value */
-    if (value !== undefined)
-        slider = slider.value(value);
 
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
@@ -605,6 +602,10 @@ function createTimeSlider(div, granularity, graph, eventHandler, value) {
         .append('g')
         .attr('transform', `translate(${slider_spacing}, 0)`);
     slider_div.call(slider);
+
+    /* Set slider value */
+    if (value !== undefined)
+        slider = slider.value(value);
 
     /* Display the graph according to the appropriate data file */
     slider.on('onchange', (val) => {
@@ -660,15 +661,16 @@ function createNodesSlider(div, graph, eventHandler, value) {
     const slider_width = parseInt(div_width * 0.9);
     const slider_spacing = parseInt((div_width - slider_width) / 2);
 
-    let slider = d3.slider()
+    const sliderScale = d3.scaleLinear()
+        .domain([0, NODES_LIMIT])
+        .range([slider_spacing, div_width - slider_spacing]);
+
+    let slider = d3.sliderHorizontal(sliderScale)
         .min(0)
         .max(NODES_LIMIT)
         .step(5)
         .tickFormat((ind) => '')
         .width(slider_width);
-    /* Set slider value */
-    if (value !== undefined)
-        slider = slider.value(value);
 
     const slider_div = d3.select(div).append('svg')
         .attr('width', "100%")
@@ -676,6 +678,10 @@ function createNodesSlider(div, graph, eventHandler, value) {
         .append('g')
         .attr('transform', `translate(${slider_spacing}, 0)`);
     slider_div.call(slider);
+
+    /* Set slider value */
+    if (value !== undefined)
+        slider = slider.value(value);
 
     /* Change the number of nodes to display */
     slider.on('onchange', (val) => {
@@ -688,6 +694,38 @@ function createNodesSlider(div, graph, eventHandler, value) {
     });
 
     return slider;
+}
+
+function animateMap(slider) {
+    let playing = false;
+    let timer;  // create timer object
+    d3.select('#play')
+        .on('click', function () {  // when user clicks the play button
+            /* Set slider to initial position */
+            slider = slider.value(0);
+
+            if (!playing) {
+                /* The animation is running */
+                timer = setInterval(function () {   // set a JS interval
+                    const val = slider.value();
+                    if (val < 4) {
+                        slider = slider.value(val + 1);
+                        playing = true;
+                        d3.select('#play').html('Pause');
+                    } else {
+                        clearInterval(this);
+                        playing = false;
+                        d3.select('#play').html('Play');
+                    }
+                }, 2000);
+            } else {
+                /* The animation has stopped */
+                clearInterval(timer);   // stop the animation by clearing the interval
+                d3.select(this).html('Play');   // change the button label to play
+                playing = false;   // change the status again
+                slider = slider.value(0);
+            }
+        });
 }
 
 function prepareGraph(settings) {
@@ -709,6 +747,9 @@ function prepareGraph(settings) {
 
     /* Insert a slider to select day for which to display nodes */
     let timeSlider = createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler);
+    /* Bind animation */
+    if (settings.graphType === 'news')
+        animateMap(timeSlider);
 
     /* Insert slider for choosing the number of nodes to display */
     let nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler, NODES_TO_DISPLAY);
@@ -721,7 +762,7 @@ function prepareGraph(settings) {
         /* Maintain sliders on the same values */
         const timeValue = timeSlider.value();
         const nodeValue = nodeSlider.value();
-        timeSlider = createTimeSlider(timeSliderDiv, 'day', graph, eventHandler, timeValue);
+        timeSlider = createTimeSlider(timeSliderDiv, sliderGranularity, graph, eventHandler, timeValue);
         nodeSlider = createNodesSlider(nodesSliderDiv, graph, eventHandler, nodeValue);
 
         if (settings.graphType === 'popularity') {
