@@ -231,8 +231,9 @@ class EventHandler {
 
     /* Treat the click depending if it's selection or deselection */
     if (this.clickedNodes.length === 0 || this.clickedNodes[this.clickedNodes.length - 1] !== id) {
-      /* Leave only country corresponding to news of this article*/
-      colorMap(graphObj.nodes[id].label);
+      if (graphObj.graphType === 'news')
+        /* Leave only country corresponding to news of this article*/
+        colorMap(graphObj.nodes[id].label);
 
       /* Change the focus to the current node */
       this.clickedNodes.push(id);
@@ -322,7 +323,8 @@ class EventHandler {
         }
       });
     } else {
-      colorMap("all");
+      if (graphObj.graphType === 'news')
+        colorMap("all");
       this.clickedNodes.pop();
       const prevPos = this.camPos.pop();
 
@@ -653,7 +655,8 @@ function createTimeSlider(div, granularity, graph, eventHandler, value) {
         time_range = d3.range(0, 13);
         tick_format = ((i) => MONTHS[i]);
         date = MONTH_TO_ID['January'];
-        colorMap();
+        if (graph.graphType === 'news')
+            colorMap();
     }
 
     let slider = d3.sliderHorizontal()
