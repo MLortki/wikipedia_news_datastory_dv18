@@ -12,7 +12,7 @@ Datasets: assets/data folder
 
           -   article_subject.csv: articles with their corresponding top level categories
           -   categories.json:          
-          -   data*\_*.json:            
+          -   data\*\_\*.json:            
           -   edges.json:               
           -   nodes.json:               
           -   wiki\_news.csv: wikipedia articles (where spike was detected) with their corresponding news         
