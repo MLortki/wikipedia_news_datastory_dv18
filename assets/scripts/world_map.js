@@ -24,10 +24,6 @@ var path = d3.geoPath()
   .projection(projection);
 
 
-var zoom = d3.zoom()
-  .scaleExtent([1, 10])
-  .on("zoom", zoomed)
-  .on("end", zoomended);
 
 var svg_map = d3.select("#map_container").append("svg")
   .attr("width", width)
@@ -37,7 +33,7 @@ var svg_map = d3.select("#map_container").append("svg")
     //zoomend needs mouse coords
     initX = d3.mouse(this)[0];
   })
-  // .call(zoom);
+// .call(zoom);
 
 var g = svg_map
   .append("g");
@@ -49,13 +45,11 @@ var tooltip_map = d3.select("body")
   .style("opacity", 0);
 
 
-//d3.json("assets/data/world_map.json", function(error, map_data) {\
 
-// d3.json("assets/data/world-2.json")
 d3.json("assets/data/world.geo.json")
   .then(function(map_data) {
 
-    console.log(map_data)
+    console.log(map_data);
 
     g.selectAll("path")
       .data(map_data.features)
@@ -70,8 +64,8 @@ d3.json("assets/data/world.geo.json")
       .on("mouseover", function() {
         d3.select(this).transition()
           .duration("100")
-          // .style("fill-opacity", ".1");
-          .style("fill", "rgb(214, 195, 135)");
+          .style("fill-opacity", ".8");
+        // .style("fill", "rgb(214, 195, 135)");
 
         // Show tooltip_map
         tooltip_map.transition()
@@ -80,18 +74,25 @@ d3.json("assets/data/world.geo.json")
 
       })
       .on("mousemove", function(d) {
-        // Place the tooltip_map
-        tooltip_map.style("left", (d3.mouse(this)[0]) + offsetL + "px")
-          .style("top", d3.event.pageY + "px");
+          // Place the tooltip_map
+          tooltip_map.style("left", (d3.mouse(this)[0]) + offsetL + "px")
+            .style("top", d3.event.pageY + "px");
 
-        //display tooltip text
-        tooltip_map.html("<h3 id='toolTipHeader'>Country: " + d.properties.admin + "</h3>" +
-          "<p class='toolTipText'>Continent: " + d.properties.continent + "</p>" +
-          "<p class='toolTipText'>Economy: " + d.properties.economy + "</p>" +
-          "<p class='toolTipText'>Formal: " + d.properties.formal_en + "</p>" +
-          "<p class='toolTipText'>Region: " + d.properties.region_wb + "</p>");
+          var toolTipHtml = "<h3 id='toolTipHeader'>Country: " + d.properties.admin + "</h3>";
 
-      })
+          if (d3.select(this).style('fill') == "rgb(236, 81, 72)") {
+
+          } else {
+            //display tooltip text
+            toolTipHtml += "<p class='toolTipText'>Continent: " + d.properties.continent + "</p>" +
+              "<p class='toolTipText'>Economy: " + d.properties.economy + "</p>" +
+              "<p class='toolTipText'>Formal: " + d.properties.formal_en + "</p>" +
+              "<p class='toolTipText'>Region: " + d.properties.region_wb + "</p>";
+        }
+
+        tooltip_map.html(toolTipHtml);
+
+        })
       .on("mouseout", function() {
         tooltip_map.transition()
           .duration(200)
@@ -99,87 +100,56 @@ d3.json("assets/data/world.geo.json")
         d3.select(this)
           .transition()
           .duration("100")
-          .style("fill", "#F2D165")
+          // .style("fill", "#F2D165")
+          .style("fill-opacity", "1")
       })
-      // .on("click", postalAreaClicked)
+    // .on("click", postalAreaClicked)
+
+
+    colorMap("blabla");
 
   });
 
-function zoomended() {
-  if (s !== 1) return;
-  //rotated = rotated + ((d3.mouse(this)[0] - initX) * 360 / (s * width));
-  rotated = rotated + ((mouse[0] - initX) * 360 / (s * width));
-  mouseClicked = false;
-}
 
-function zoomed() {
-  var t = [d3.event.transform.x, d3.event.transform.y];
-  s = d3.event.transform.k;
-  var h = 0;
 
-  t[0] = Math.min(
-    (width / height) * (s - 1),
-    Math.max(width * (1 - s), t[0])
-  );
+function getColor(news, d) {
 
-  t[1] = Math.min(
-    h * (s - 1) + h * s,
-    Math.max(height * (1 - s) - h * s, t[1])
-  );
+  colour = "#F2D165";
+  news.forEach(function(row) {
+    if (row['Country'] != "" && d.properties.admin.includes(row['Country'])) {
+      // console.log("found for " + row['Country'] + " in " + d.properties.admin);
+      colour = "#FFF169";
+      colour = '#ec5148';
+    }
+  });
 
-  g.attr("transform", "translate(" + t + ")scale(" + s + ")");
 
-  //adjust the stroke width based on zoom level
-  d3.selectAll(".boundary").style("stroke-width", 1 / s);
-
-  mouse = d3.mouse(this);
-
-  if (s === 1 && mouseClicked) {
-    //rotateMap(d3.mouse(this)[0]);
-    rotateMap(mouse[0]);
-    return;
-  }
+  return colour;
 
 }
 
+function colorMap(date) {
+  console.log("in colorMap");
 
-function postalAreaClicked(d) {
-  var posX, posY, zoomScale;
+  d3.csv("assets/data/wiki_news.csv")
+    .then(function(news) {
+      // console.log(news);
 
-  // we click inside the country
-  if (d && centered !== d) {
-    var centroid = path.centroid(d);
-    //we retrieve the x and y coordination of where we clicked
-    posX = centroid[0] - 20;
-    posY = centroid[1] + 100;
-    //determines how much we will zoom
-    zoomScale = 1.3;
-    centered = d;
+      d3.selectAll('.country').transition() //select all the countries and prepare for a transition to new values
+        .duration(500) // give it a smooth time period for the transition
+        .style('fill', function(d) {
+          // console.log(d);
+          return getColor(news, d);
 
-  } else {
-    // test if we double click twice
-    //reposition to center of the screen and update zoom scale
-    posX = width / 2;
-    posY = height / 2;
-    zoomScale = 1;
-    centered = null;
-  }
-
-
-  g.transition()
-    .duration(750)
-    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + zoomScale + ")translate(" + -posX + "," + -posY + ")")
-    .on("start", function() {
-
-      // if (centered === d) {
-      //   d3.select("#details").remove();
-      //   var zipArea = d.properties.;
-      //   // generateChart(zipArea);
-      // } else {
-      //   d3.select("#details").remove();
-      // }
+        });
     });
 }
+
+
+
+
+
+
 
 
 //   }
