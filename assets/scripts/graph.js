@@ -572,7 +572,6 @@ class Graph {
         /* Clear the graph and unbind methods, in case you redraw */
         s.graph.clear();
         this.drawnNodes = {};
-        this.drawnEdges = {};
         s.unbind(["clickNode", "overNode", "outNode"]);
 
         /* Set the display settings for the sigma instance */
@@ -608,9 +607,8 @@ class Graph {
             /* Draw the main node's outgoing edges */
             if (node !== undefined) {
                 const edgeId = this.outNei[node][i].id;
-                if (this.drawnEdges[edgeId] === undefined)
+                if (s.graph.edges(edgeId) === undefined)
                     s.graph.addEdge(this.outNei[node][i]);
-                this.drawnEdges[edgeId] === 1;
             }
         }
         /* Draw the edges */
@@ -626,9 +624,8 @@ class Graph {
                 /* Check that the neighbor is drawn */
                 if (this.drawnNodes[dst] === 1) {
                     const edgeId = neighs[j].id;
-                    if (this.drawnEdges[edgeId] === undefined)
+                    if (s.graph.edges(edgeId) === undefined)
                         s.graph.addEdge(neighs[j]);
-                    this.drawnEdges[edgeId] === 1;
                 }
             }
         }
